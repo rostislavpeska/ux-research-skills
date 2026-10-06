@@ -1,11 +1,9 @@
 # n8n plumbing
 
-> **v0.1:** the five workflow templates are not in `workflows/` yet — they follow in the next release,
-> sanitized with `sanitize.py`. The setup, tables and limits below already apply.
-
 Five webhook workflows. They carry **no method** — prompts, schemas and judgement live in the skill;
-n8n only moves files, calls Gemini and stores rows. Templates in `workflows/` were produced by
-`sanitize.py` from our live exports.
+n8n only moves files, calls Gemini and stores rows. The templates in `workflows/` are our live
+workflows (state of 2026-10-05) passed through `sanitize.py`: credentials, account data, ids and the
+API key removed — nodes, connections and code otherwise unchanged.
 
 | Template | Webhook | Credentials to select after import |
 |---|---|---|
@@ -26,11 +24,14 @@ n8n only moves files, calls Gemini and stores rows. Templates in `workflows/` we
      node — we kept the IF pattern because our other workflows use it.
    - `REPLACE_NOCODB_WORKSPACE_ID`, `REPLACE_NOCODB_BASE_ID`, `REPLACE_TABLE_ID_<table>` in NocoDB
      nodes and in the table map of the Rows workflow.
-4. **Activate** all five. In n8n versions with draft/publish, re-activate after every edit — an
+4. **Async calls:** Ingest and Gemini Call answer at once with `{"job_id": <n8n execution id>}` and
+   keep working; read the result from that execution (its last node) or from the `ux_*` row it writes.
+   Rows, Publish Doc and Fetch Recording answer synchronously.
+5. **Activate** all five. In n8n versions with draft/publish, re-activate after every edit — an
    edited but unpublished workflow keeps serving the old version (or 404).
-5. **Binary data**: recordings are large (a 45-min Meet recording is a few hundred MB). Run n8n with
+6. **Binary data**: recordings are large (a 45-min Meet recording is a few hundred MB). Run n8n with
    `N8N_DEFAULT_BINARY_DATA_MODE=filesystem`, or downloads will exhaust memory.
-6. **Drive access**: the Google account behind your Drive credential must be **Editor** on the study
+7. **Drive access**: the Google account behind your Drive credential must be **Editor** on the study
    folder, and Meet recordings need "Viewers and commenters can download" enabled.
 
 ## NocoDB tables

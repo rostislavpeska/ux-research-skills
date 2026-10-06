@@ -6,11 +6,11 @@ through an n8n MCP server ({"success":…, "data":{…}} is unwrapped). Output: 
 template per workflow.
 
 What is removed or replaced:
-- everything at the top level except name, nodes, connections and settings.executionOrder
-  (ids, versions, sharing/owner/project data, tags, pinned data, static data)
+- everything at the top level except name, nodes, connections and the execution settings in
+  KEEP_SETTINGS (ids, versions, sharing/owner/project data, tags, pinned data, static data)
 - node credentials (the importer selects their own) and webhook ids (replaced by fresh UUIDs)
 - the API key compared in any IF condition whose left side reads the x-api-key header
-- NocoDB node workspace / base / table ids
+- NocoDB node workspace / base / table ids (expressions such as ={{ $json.table_id }} are kept)
 - every literal listed in a private mapping file (`--map private_map.json`, NEVER committed):
   {"<literal found in your exports>": "<PLACEHOLDER>", …} — use it for table ids inside Code
   nodes, base URLs, folder ids, emails …
@@ -35,6 +35,9 @@ EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 API_KEY_PLACEHOLDER = "REPLACE_WITH_YOUR_API_KEY"
 NOCODB_PARAMS = {"workspaceId": "REPLACE_NOCODB_WORKSPACE_ID", "projectId": "REPLACE_NOCODB_BASE_ID",
                  "table": "REPLACE_NOCODB_TABLE_ID"}
+# behaviour, not identity: e.g. saveDataSuccessExecution "none" keeps recordings out of the execution store
+KEEP_SETTINGS = ("executionOrder", "saveDataSuccessExecution", "saveDataErrorExecution",
+                 "saveManualExecutions", "saveExecutionProgress", "executionTimeout")
 
 
 def slug(name: str) -> str:
@@ -83,11 +86,14 @@ def sanitize(wf: dict, mapping: dict) -> tuple[dict, list[str]]:
             for k, ph in NOCODB_PARAMS.items():
                 if k in p:
                     raw = str(p[k]).lstrip("=")
+                    if "{{" in raw:  # an expression, not an id
+                        continue
                     p[k] = mapping.get(raw, ph)  # keep which table it was, when the map knows it
             notes.append(f"{n['name']}: NocoDB ids → placeholders")
         nodes.append(n)
+    settings = wf.get("settings") or {}
     out = {"name": wf["name"], "nodes": nodes, "connections": wf["connections"],
-           "settings": {"executionOrder": (wf.get("settings") or {}).get("executionOrder", "v1")}}
+           "settings": {"executionOrder": "v1", **{k: settings[k] for k in KEEP_SETTINGS if k in settings}}}
     return replace_literals(out, mapping), notes
 
 

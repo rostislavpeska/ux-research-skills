@@ -1,0 +1,291 @@
+{
+  "name": "UX Harness: Gemini Call (Webhook Harness)",
+  "nodes": [
+    {
+      "id": "b175ba67-466b-4499-8b37-f8c6c7ac5128",
+      "name": "When Called",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ux-gemini",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "3a1c05bd-17cb-4932-8b78-ab65b8237556"
+    },
+    {
+      "id": "48f2696f-135c-4596-bb1e-64f06a6d5330",
+      "name": "Check API Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "88597d63-5e2a-49a0-9322-09fb5585da70",
+              "leftValue": "={{ $json.headers['x-api-key'] }}",
+              "rightValue": "REPLACE_WITH_YOUR_API_KEY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aae7fe9b-7e3b-4775-ad97-fb07ed0e1e62",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "b4ab2882-35ee-485b-adee-057c925bc198",
+      "name": "Respond Immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -96
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"job_id\": $execution.id } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "c6b4041d-bf04-4787-9592-8c45d42a5e06",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Generic Gemini generateContent call. The caller (ux-interview-analysis skill) supplies\n// the full request body; prompts and schemas live in the skill as versioned files.\nconst b = $('When Called').first().json.body || {};\nfor (const k of ['interview_id', 'stage', 'prompt_version', 'model']) {\n  if (!b[k] || typeof b[k] !== 'string') throw new Error(`Missing/invalid field: ${k}`);\n}\nif (!/^[a-z0-9.\\-]+$/.test(b.model)) throw new Error('model must look like gemini-x.y-name');\nif (!b.request || typeof b.request !== 'object' || !Array.isArray(b.request.contents)) {\n  throw new Error('request must be a generateContent body with a contents array');\n}\nconst run_id = `${b.interview_id}-${b.stage}-${$execution.id}`;\n\n// params_json = the request with prompt text and schema redacted (both are versioned files in the skill).\nconst params = JSON.parse(JSON.stringify(b.request));\nfor (const c of params.contents) {\n  for (const p of (c.parts || [])) {\n    if (typeof p.text === 'string') p.text = `<${p.text.length} chars>`;\n  }\n}\nconst gc = params.generationConfig || {};\nfor (const k of ['responseSchema', 'responseJsonSchema']) if (gc[k]) gc[k] = '<schema>';\n\nreturn [{ json: {\n  run_id,\n  interview_id: b.interview_id,\n  stage: b.stage,\n  prompt_version: b.prompt_version,\n  model: b.model,\n  request: b.request,\n  params_json: JSON.stringify({ model: b.model, ...params }),\n} }];"
+      }
+    },
+    {
+      "id": "5aff0b5b-3df3-4eac-9496-32439d94d380",
+      "name": "Call Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        -96
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $json.model }}:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.request) }}",
+        "options": {
+          "timeout": 600000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "d2abc207-8e82-40b0-af91-021523109cd3",
+      "name": "Shape Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -192
+      ],
+      "parameters": {
+        "jsCode": "// Store the model output byte-exact; never re-serialise model text.\nconst v = $('Validate Request').first().json;\nconst r = $input.first().json;\nconst cand = (r.candidates || [])[0] || {};\nconst parts = (cand.content && cand.content.parts) || [];\nconst texts = parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text);\nconst transcriptions = parts.filter(p => p.audioTranscription).map(p => p.audioTranscription);\n\nlet output;\nif (transcriptions.length) output = JSON.stringify(transcriptions);\nelse if (texts.length) output = texts.join('');\nelse output = JSON.stringify(r);\n\nconst finish = cand.finishReason || 'NONE';\nlet status = finish === 'STOP' ? 'ok' : finish === 'MAX_TOKENS' ? 'truncated' : `finish_${String(finish).toLowerCase()}`;\nconst wantsJson = ((v.request.generationConfig || {}).responseMimeType) === 'application/json';\nif (status === 'ok' && wantsJson && !transcriptions.length) {\n  try { JSON.parse(output); } catch (e) { status = 'parse_error'; }\n}\nconst u = r.usageMetadata || {};\nreturn [{ json: {\n  run_id: v.run_id,\n  interview_id: v.interview_id,\n  stage: v.stage,\n  model: v.model,\n  model_version: r.modelVersion || '',\n  prompt_version: v.prompt_version,\n  params_json: v.params_json,\n  output_json: output,\n  tokens_in: u.promptTokenCount ?? null,\n  tokens_out: (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0),\n  status,\n} }];"
+      }
+    },
+    {
+      "id": "10c07e0e-6cd5-49c5-a282-e9a546f3fc20",
+      "name": "Shape Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Gemini returned an HTTP error: record it as a failed run (never silently dropped).\nconst v = $('Validate Request').first().json;\nconst e = $input.first().json;\nconst err = e.error !== undefined ? e.error : e;\nconst msg = typeof err === 'object' ? JSON.stringify(err) : String(err);\nreturn [{ json: {\n  run_id: v.run_id,\n  interview_id: v.interview_id,\n  stage: v.stage,\n  model: v.model,\n  model_version: '',\n  prompt_version: v.prompt_version,\n  params_json: v.params_json,\n  output_json: msg.slice(0, 20000),\n  tokens_in: null,\n  tokens_out: null,\n  status: 'error',\n} }];"
+      }
+    },
+    {
+      "id": "2c1beeeb-4ccd-44e4-9f0b-8939f963cfe1",
+      "name": "Write Run",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        -96
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_runs",
+        "dataToSend": "autoMapInputData"
+      }
+    },
+    {
+      "id": "f780ff02-a171-4116-9d3c-4dc4d73c4c91",
+      "name": "Done",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Last node = job result; the caller reads it from the n8n execution (job_id).\nconst row = $('Shape Run').isExecuted ? $('Shape Run').first().json : $('Shape Error').first().json;\nreturn [{ json: {\n  run_id: row.run_id,\n  status: row.status,\n  model_version: row.model_version,\n  tokens_in: row.tokens_in,\n  tokens_out: row.tokens_out,\n  output_chars: (row.output_json || '').length,\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "When Called": {
+      "main": [
+        [
+          {
+            "node": "Check API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key": {
+      "main": [
+        [
+          {
+            "node": "Respond Immediately",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Immediately": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini": {
+      "main": [
+        [
+          {
+            "node": "Shape Run",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shape Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Run": {
+      "main": [
+        [
+          {
+            "node": "Write Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Error": {
+      "main": [
+        [
+          {
+            "node": "Write Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Run": {
+      "main": [
+        [
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

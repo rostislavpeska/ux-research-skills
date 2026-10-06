@@ -1,0 +1,699 @@
+{
+  "name": "UX Harness: Ingest (Webhook Harness)",
+  "nodes": [
+    {
+      "id": "f679d117-2767-4195-8736-551aa9a219d5",
+      "name": "When Called",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ux-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "6facce4b-ae05-4e2f-a7cf-3b8ef2fa4cf1"
+    },
+    {
+      "id": "fe65e07c-199e-4fa9-be25-f5c2a8aaca18",
+      "name": "Check API Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "4a08b74e-3fa6-440d-b46a-6a9c2f69553c",
+              "leftValue": "={{ $json.headers['x-api-key'] }}",
+              "rightValue": "REPLACE_WITH_YOUR_API_KEY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dac0f4bd-6933-470a-9491-661f316a61da",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "113fc553-92e9-4a6b-b119-a607fdfc8be8",
+      "name": "Respond Immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -96
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"job_id\": $execution.id } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "8f926478-0a9c-4b79-ae97-417bce35d410",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "const b = $('When Called').first().json.body || {};\nconst missing = ['interview_id', 'study_id', 'participant_id', 'drive_file_id'].filter(k => !b[k] || typeof b[k] !== 'string');\nif (missing.length) throw new Error('Missing/invalid fields: ' + missing.join(', '));\nif (!/^[A-Za-z0-9_-]+$/.test(b.interview_id)) throw new Error('interview_id may only contain letters, digits, _ and -');\nreturn [{ json: {\n  interview_id: b.interview_id,\n  study_id: b.study_id,\n  participant_id: b.participant_id,\n  drive_file_id: b.drive_file_id,\n  force: b.force === true,\n} }];"
+      }
+    },
+    {
+      "id": "6d8fa0ae-df75-4f72-9414-210b9e3c2022",
+      "name": "Find Interview",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -96
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_interviews",
+        "returnAll": true,
+        "options": {
+          "where": "=(interview_id,eq,{{ $json.interview_id }})"
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "53880282-91be-447b-9853-c2b3d51fd4ae",
+      "name": "Decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Idempotent: reuse the Gemini upload while it has >6 h left, unless force=true.\nconst input = $('Validate Input').first().json;\nconst found = $('Find Interview').all().map(i => i.json).find(r => r && r.interview_id === input.interview_id) || null;\nconst existing_id = found ? (found.Id ?? found.id ?? null) : null;\nconst exp = found && found.gemini_file_expires_at ? Date.parse(String(found.gemini_file_expires_at).replace(' ', 'T')) : NaN;\nconst fresh = !!(found && found.gemini_file_uri && found.drive_md5 && Number.isFinite(exp) && exp - Date.now() > 6 * 3600 * 1000);\nreturn [{ json: { ...input, existing_id, reuse: fresh && !input.force, existing: found } }];"
+      }
+    },
+    {
+      "id": "a4341e28-db68-42eb-a967-0e7ab2639067",
+      "name": "Reuse Upload?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "343ddadd-b7c6-4939-9329-df2c2c1c1bfb",
+              "leftValue": "={{ $json.reuse }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "18d87a20-7ed2-4c95-a436-c7763f363ac0",
+      "name": "Return Cached",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        -288
+      ],
+      "parameters": {
+        "jsCode": "const e = $json.existing;\nreturn [{ json: {\n  interview_id: e.interview_id,\n  duration_s: e.duration_s,\n  drive_md5: e.drive_md5,\n  gemini_file_uri: e.gemini_file_uri,\n  gemini_file_expires_at: e.gemini_file_expires_at,\n  status: e.status,\n  reused: true,\n} }];"
+      }
+    },
+    {
+      "id": "b175ba67-466b-4499-8b37-f8c6c7ac5129",
+      "name": "Drive Metadata",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.drive_file_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,mimeType,size,md5Checksum,videoMediaMetadata"
+            },
+            {
+              "name": "supportsAllDrives",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b4c225d-39d9-4d80-96e8-46fe0f654d97",
+      "name": "Drive Download",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1792,
+        0
+      ],
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Decide').first().json.drive_file_id }}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "48f2696f-135c-4596-bb1e-64f06a6d5331",
+      "name": "Neutral Filename",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Recording titles contain participant names; Gemini only ever sees the pseudonymous interview id.\nconst id = $('Decide').first().json.interview_id;\nreturn $input.all().map(item => {\n  const bin = item.binary && item.binary.data;\n  if (!bin) throw new Error('Drive download returned no binary \"data\"');\n  bin.fileName = `${id}.mp4`;\n  return { json: { interview_id: id }, binary: { data: bin } };\n});"
+      }
+    },
+    {
+      "id": "88597d63-5e2a-49a0-9322-09fb5585da71",
+      "name": "Upload to Gemini",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2240,
+        0
+      ],
+      "parameters": {
+        "resource": "file",
+        "operation": "upload",
+        "inputType": "binary",
+        "binaryPropertyName": "data"
+      }
+    },
+    {
+      "id": "aae7fe9b-7e3b-4775-ad97-fb07ed0e1e63",
+      "name": "Extract File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst f = r.file || r;\n// Gemini node v1.1 returns { fileUri, mimeType }; the Files API name is files/<id>.\nconst uri = f.uri || f.fileUri || '';\nconst name = f.name || (uri.match(/files\\/[^/?]+/) || [])[0];\nif (!name) throw new Error('Unexpected upload output - ' + JSON.stringify(r).slice(0, 500));\nreturn [{ json: { file_name: name } }];"
+      }
+    },
+    {
+      "id": "b4ab2882-35ee-485b-adee-057c925bc199",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2688,
+        0
+      ],
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "webhookId": "3f8d37ff-c6f5-42b9-9eb9-33c6aec7e7af"
+    },
+    {
+      "id": "5aff0b5b-3df3-4eac-9496-32439d94d381",
+      "name": "File State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2912,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/{{ $('Extract File').first().json.file_name }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "options": {}
+      }
+    },
+    {
+      "id": "d2abc207-8e82-40b0-af91-021523109cd4",
+      "name": "Eval State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const f = $input.first().json;\nif (f.state === 'ACTIVE') return [{ json: { ready: true, file: f } }];\nif (f.state === 'FAILED') throw new Error('Gemini file processing FAILED: ' + JSON.stringify(f.error || {}));\nif ($runIndex >= 60) throw new Error(`Gemini file still ${f.state} after ~10 min`);\nreturn [{ json: { ready: false, state: f.state || 'unknown' } }];"
+      }
+    },
+    {
+      "id": "10c07e0e-6cd5-49c5-a282-e9a546f3fc21",
+      "name": "Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "2c1beeeb-4ccd-44e4-9f0b-8939f963cfe2",
+              "leftValue": "={{ $json.ready }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f780ff02-a171-4116-9d3c-4dc4d73c4c92",
+      "name": "Build Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "const d = $('Decide').first().json;\nconst meta = $('Drive Metadata').first().json;\nconst f = $input.first().json.file;\nconst durMs = Number(meta.videoMediaMetadata && meta.videoMediaMetadata.durationMillis);\nreturn [{ json: {\n  interview_id: d.interview_id,\n  study_id: d.study_id,\n  participant_id: d.participant_id,\n  drive_file_id: d.drive_file_id,\n  drive_md5: meta.md5Checksum || null,\n  duration_s: Number.isFinite(durMs) ? durMs / 1000 : null,\n  gemini_file_uri: f.uri,\n  gemini_file_expires_at: f.expirationTime ? String(f.expirationTime).slice(0, 19).replace('T', ' ') : null,\n  status: 'ingested',\n} }];"
+      }
+    },
+    {
+      "id": "60412bbb-10a4-4744-b7e3-57576fa365c2",
+      "name": "Create Interview",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        4032,
+        0
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_interviews",
+        "dataToSend": "autoMapInputData"
+      }
+    },
+    {
+      "id": "a7680def-4f35-49a9-aaef-c4d3dbb83860",
+      "name": "Done",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4256,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { ...$('Build Row').first().json, reused: false } }];"
+      }
+    },
+    {
+      "id": "6b0c1f3e-2d5a-4c8e-9f7b-3a1d2e4c5b60",
+      "name": "Row Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3808,
+        -96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+              "leftValue": "={{ $('Decide').first().json.existing_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8d2e3f4a-5b6c-4d7e-9f80-1a2b3c4d5e6f",
+      "name": "Update Interview",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        4032,
+        -192
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "update",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_interviews",
+        "id": "={{ $('Decide').first().json.existing_id }}",
+        "dataToSend": "autoMapInputData"
+      }
+    }
+  ],
+  "connections": {
+    "When Called": {
+      "main": [
+        [
+          {
+            "node": "Check API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key": {
+      "main": [
+        [
+          {
+            "node": "Respond Immediately",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Immediately": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Find Interview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Interview": {
+      "main": [
+        [
+          {
+            "node": "Decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide": {
+      "main": [
+        [
+          {
+            "node": "Reuse Upload?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reuse Upload?": {
+      "main": [
+        [
+          {
+            "node": "Return Cached",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Drive Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Metadata": {
+      "main": [
+        [
+          {
+            "node": "Drive Download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Download": {
+      "main": [
+        [
+          {
+            "node": "Neutral Filename",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neutral Filename": {
+      "main": [
+        [
+          {
+            "node": "Upload to Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Gemini": {
+      "main": [
+        [
+          {
+            "node": "Extract File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract File": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "File State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File State": {
+      "main": [
+        [
+          {
+            "node": "Eval State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eval State": {
+      "main": [
+        [
+          {
+            "node": "Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready?": {
+      "main": [
+        [
+          {
+            "node": "Build Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Row": {
+      "main": [
+        [
+          {
+            "node": "Row Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Row Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update Interview",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Interview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Interview": {
+      "main": [
+        [
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Interview": {
+      "main": [
+        [
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

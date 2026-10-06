@@ -1,0 +1,389 @@
+{
+  "name": "UX Harness: Rows (Webhook Harness)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ux-rows",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "60412bbb-10a4-4744-b7e3-57576fa365c1",
+      "name": "When Called",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "6538cd5e-91ef-4afd-a4ee-71095bdecb1e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "e2c7611a-17fd-48d0-891f-9e2e4614e81a",
+              "leftValue": "={{ $json.headers['x-api-key'] }}",
+              "rightValue": "REPLACE_WITH_YOUR_API_KEY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bc72a1ad-e7bc-4058-9d7e-d14860f9a58c",
+      "name": "Check API Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "43af42c5-c157-4d1a-807a-ebb5f85355c3",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read/write ONLY the ux_* research tables. Table ids are this harness's config.\nconst TABLES = {\n  ux_interviews: 'REPLACE_TABLE_ID_ux_interviews',\n  ux_runs: 'REPLACE_TABLE_ID_ux_runs',\n  ux_transcript: 'REPLACE_TABLE_ID_ux_transcript',\n};\nconst b = $('When Called').first().json.body || {};\nconst table_id = TABLES[b.table];\nif (!table_id) throw new Error(`table not allowed - use one of ${Object.keys(TABLES).join(', ')}`);\nif (b.op === 'read') {\n  return [{ json: { op: 'read', table: b.table, table_id, where: typeof b.where === 'string' ? b.where : '' } }];\n}\nif (b.op === 'write') {\n  if (!Array.isArray(b.rows) || !b.rows.length) throw new Error('write needs a non-empty rows array');\n  if (b.rows.length > 100) throw new Error('max 100 rows per call (NocoDB bulk limit) - send in chunks');\n  return [{ json: { op: 'write', table: b.table, table_id, rows: b.rows } }];\n}\nthrow new Error('op must be read or write');"
+      },
+      "id": "838c113d-7415-44b9-9017-63c1614e9fbb",
+      "name": "Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -96
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": String($json.error && $json.error.message ? $json.error.message : ($json.error || 'failed')) } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "5b217a07-ee00-4016-9b8a-a969d4050066",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "a1e654a3-61ab-4f29-8769-b85ce10ba525",
+              "leftValue": "={{ $json.op }}",
+              "rightValue": "read",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d625fed3-7bc5-4466-af13-9127e8c2bbe7",
+      "name": "Route Op",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "={{ $json.table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "={{ $json.where }}"
+        }
+      },
+      "id": "b4f3364d-0138-4ae9-b2ac-2aee816fb2a4",
+      "name": "Read Rows",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -288
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const v = $('Validate').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && Object.keys(r).length);\nreturn [{ json: { table: v.table, count: rows.length, rows } }];"
+      },
+      "id": "b1a3774b-d0d4-4299-aac1-85deb59543a5",
+      "name": "Pack Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "68360c1a-7acf-4bf6-936c-dad1f7528def",
+      "name": "Respond Rows",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per row; item json must contain only table columns.\nreturn $('Validate').first().json.rows.map(r => ({ json: r }));"
+      },
+      "id": "752f7725-5ff3-4db2-81ac-713214e580cf",
+      "name": "Explode Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "={{ $('Validate').first().json.table_id }}",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "48da0ee7-48de-4dcb-9aa6-7fae43f40a5d",
+      "name": "Write Rows",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        -96
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Count only rows NocoDB really stored (they come back with an Id). Never report a write that did not happen.\nconst items = $input.all();\nconst stored = items.filter(i => i.json && (i.json.Id !== undefined || i.json.id !== undefined) && !i.json.error);\nif (stored.length !== $('Validate').first().json.rows.length) {\n  throw new Error(`NocoDB stored ${stored.length} of ${$('Validate').first().json.rows.length} rows`);\n}\nreturn [{ json: { table: $('Validate').first().json.table, written: stored.length } }];"
+      },
+      "id": "6ec1e61e-1284-46f3-a970-c6ce13e9c629",
+      "name": "Count Written",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "35206c63-4dcf-4f94-ba47-40dc58b98af1",
+      "name": "Respond Written",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        -112
+      ]
+    }
+  ],
+  "connections": {
+    "When Called": {
+      "main": [
+        [
+          {
+            "node": "Check API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Route Op",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Op": {
+      "main": [
+        [
+          {
+            "node": "Read Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Explode Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Rows": {
+      "main": [
+        [
+          {
+            "node": "Pack Rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pack Rows": {
+      "main": [
+        [
+          {
+            "node": "Respond Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explode Rows": {
+      "main": [
+        [
+          {
+            "node": "Write Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Rows": {
+      "main": [
+        [
+          {
+            "node": "Count Written",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Written": {
+      "main": [
+        [
+          {
+            "node": "Respond Written",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

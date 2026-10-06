@@ -1,0 +1,242 @@
+{
+  "name": "UX Harness: Fetch Recording (Webhook Harness)",
+  "nodes": [
+    {
+      "id": "0f2dbce9-9ffc-4f7b-ab1e-118b12e409c6",
+      "name": "When Called",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ux-fetch",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "f643ed92-0ff8-4445-92db-8232fe866975"
+    },
+    {
+      "id": "0ff28410-0247-422b-846b-321729fc74f2",
+      "name": "Check API Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5a5d091a-cc23-4994-a525-8afcb5376b97",
+              "leftValue": "={{ $json.headers['x-api-key'] }}",
+              "rightValue": "REPLACE_WITH_YOUR_API_KEY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c175ddf0-033f-4f6f-b7c2-57c077556fac",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        192
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "bc5e8927-3957-41c1-972f-abe3aaea3273",
+      "name": "Find Interview",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        448,
+        -96
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_interviews",
+        "returnAll": true,
+        "options": {
+          "where": "=(interview_id,eq,{{ $('When Called').first().json.body.interview_id }})"
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "aae944b5-4116-4c30-aa2c-16cf65cf4b31",
+      "name": "Resolve Recording",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Stream an ingested interview's recording to the analyst's machine (frames/screenshots are cut locally).\nconst id = ($('When Called').first().json.body || {}).interview_id;\nconst row = $('Find Interview').all().map(i => i.json).find(r => r && r.interview_id === id);\nif (!row || !row.drive_file_id) throw new Error(`unknown interview ${id} - ingest it first`);\nreturn [{ json: { drive_file_id: row.drive_file_id, interview_id: id } }];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "98a098cb-afc2-4d5b-9aea-9a0649bceaa1",
+      "name": "Drive Download",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -96
+      ],
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.drive_file_id }}"
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "72f150c4-d9f7-4f9a-9266-d86ca7674b62",
+      "name": "Respond File",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        -96
+      ],
+      "parameters": {
+        "respondWith": "binary",
+        "inputDataFieldName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "e72eb6fd-2fcd-4683-b8ea-af9fe300a380",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        128
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": String($json.error && $json.error.message ? $json.error.message : ($json.error || 'failed')) } }}",
+        "options": {
+          "responseCode": 500
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Called": {
+      "main": [
+        [
+          {
+            "node": "Check API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key": {
+      "main": [
+        [
+          {
+            "node": "Find Interview",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Interview": {
+      "main": [
+        [
+          {
+            "node": "Resolve Recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Recording": {
+      "main": [
+        [
+          {
+            "node": "Drive Download",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Download": {
+      "main": [
+        [
+          {
+            "node": "Respond File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none"
+  }
+}

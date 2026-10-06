@@ -121,7 +121,7 @@ video frame. The demo's mock screens and the two charts were made by hand for th
 | `.claude/skills/ux-interview-analysis/` | analysis skill: `SKILL.md`, prompts, schemas, locales (`cs`, `en`), templates, scripts |
 | `…/ux-interview-analysis/templates/` | study brief, session script, observer-notes guides |
 | `…/ux-interview-analysis/examples/railo/` | inputs of the fictional demo boards above |
-| `…/ux-interview-analysis/n8n/` | setup + NocoDB tables (`README.md`), `sanitize.py`; the five workflow templates follow in the next release |
+| `…/ux-interview-analysis/n8n/` | the five workflow templates (`workflows/`), setup + NocoDB tables (`README.md`), `sanitize.py` |
 | `…/ux-interview-analysis/renderers/figjam/` | draws the board JSON in FigJam through the Figma MCP |
 | `.claude/skills/skill-library-audit/` | companion: checks every package's declared resources (`resources.json`) |
 | `scripts/` | discovery-link setup, user-level installer, validator |

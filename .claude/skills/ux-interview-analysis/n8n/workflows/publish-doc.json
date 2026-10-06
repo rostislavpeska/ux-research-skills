@@ -1,0 +1,591 @@
+{
+  "name": "UX Harness: Publish Doc (Webhook Harness)",
+  "nodes": [
+    {
+      "id": "845d5ab7-582c-426d-910f-5ebe543974a3",
+      "name": "When Called",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ux-publish",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "d2f02c99-26d4-4b6f-b01c-68ddccfaee1b"
+    },
+    {
+      "id": "ab7944bd-55d1-4d01-9c2f-ab290a73c0d1",
+      "name": "Check API Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "09cdc7fd-11dd-462b-8d02-73ae31b9305b",
+              "leftValue": "={{ $json.headers['x-api-key'] }}",
+              "rightValue": "REPLACE_WITH_YOUR_API_KEY",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "80a0a903-740d-4a81-9a22-d279a9a8be01",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        192
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "d12b73ef-10d3-4f58-a2f5-5727767406cb",
+      "name": "Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Publish a text deliverable (transcript / analysis) as a Google Doc into the interview's own Drive folder.\nconst b = $('When Called').first().json.body || {};\nfor (const k of ['title', 'text']) {\n  if (!b[k] || typeof b[k] !== 'string') throw new Error(`missing field ${k}`);\n}\nif (!b.interview_id && !b.folder_id) throw new Error('need interview_id (interview folder) or folder_id (e.g. study folder)');\nif (b.text.length > 1000000) throw new Error('text longer than 1 MB');\nreturn [{ json: { interview_id: b.interview_id || '', folder_id: b.folder_id || '', title: b.title, text: b.text } }];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "373099b0-2cf6-4b74-9b56-560ca993d96a",
+      "name": "Find Interview",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        672,
+        -96
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "REPLACE_NOCODB_WORKSPACE_ID",
+        "projectId": "REPLACE_NOCODB_BASE_ID",
+        "table": "REPLACE_TABLE_ID_ux_interviews",
+        "returnAll": true,
+        "options": {
+          "where": "=(interview_id,eq,{{ $json.interview_id }})"
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "bb9f8904-120d-41f8-b349-2d99ed3abf87",
+      "name": "Resolve Recording",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "const v = $('Validate').first().json;\nconst row = $('Find Interview').all().map(i => i.json).find(r => r && r.interview_id === v.interview_id);\nif (!row || !row.drive_file_id) throw new Error(`unknown interview ${v.interview_id} - ingest it first`);\nreturn [{ json: { drive_file_id: row.drive_file_id } }];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "6bd5b297-cc33-4a9b-b530-360ec5bf087f",
+      "name": "Folder Lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -96
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.drive_file_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "parents"
+            },
+            {
+              "name": "supportsAllDrives",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "530dccd7-ea14-4634-9ffa-662476983668",
+      "name": "Find Existing Doc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1344,
+        -96
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.parent + \"' in parents and name = '\" + $('Validate').first().json.title.replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\") + \"' and trashed = false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name)"
+            },
+            {
+              "name": "supportsAllDrives",
+              "value": "true"
+            },
+            {
+              "name": "includeItemsFromAllDrives",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "af63292c-3efa-4045-b741-9af1bb0366a3",
+      "name": "Doc Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        -96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "2bc1caa3-c5a7-4a14-8424-d0c496015bc7",
+              "leftValue": "={{ ($json.files || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3c77782d-e698-4e35-975c-50f3cc70c15a",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2464,
+        192
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { error: String($json.error && $json.error.message ? $json.error.message : ($json.error || 'failed')) } }}",
+        "options": {
+          "responseCode": 500
+        }
+      }
+    },
+    {
+      "id": "1f4e8a2b-6c3d-4e5f-8a9b-0c1d2e3f4a5b",
+      "name": "Create Empty Doc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "supportsAllDrives",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $('Validate').first().json.title, mimeType: 'application/vnd.google-apps.document', parents: [$('Folder').first().json.parent] }) }}",
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "2a5f9b3c-7d4e-4f60-9b0c-1d2e3f4a5b6c",
+      "name": "Pick Doc",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -96
+      ],
+      "parameters": {
+        "jsCode": "// Existing Doc with this title -> update it; otherwise use the one just created.\nconst created = $('Create Empty Doc').isExecuted ? $('Create Empty Doc').first().json : null;\nconst existing = ($('Find Existing Doc').first().json.files || [])[0];\nconst id = created && created.id ? created.id : existing.id;\nreturn [{ json: { id, status: created ? 'created' : 'updated' } }];"
+      }
+    },
+    {
+      "id": "3b6a0c4d-8e5f-4071-8c1d-2e3f4a5b6c7d",
+      "name": "Write Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        -96
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://www.googleapis.com/upload/drive/v3/files/{{ $json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "media"
+            },
+            {
+              "name": "supportsAllDrives",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain; charset=UTF-8",
+        "body": "={{ $('Validate').first().json.text }}",
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "4c7b1d5e-9f60-4182-9d2e-3f4a5b6c7d8e",
+      "name": "Respond Published",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2464,
+        -96
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: $('Pick Doc').first().json.status, id: $('Pick Doc').first().json.id, url: 'https://docs.google.com/document/d/' + $('Pick Doc').first().json.id + '/edit' } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "5d8c2e1f-0a3b-4c6d-9e7f-8a1b2c3d4e50",
+      "name": "Study Doc?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -288
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "6e9d3f20-1b4c-4d7e-8f90-9b2c3d4e5f61",
+              "leftValue": "={{ $json.folder_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7fae4031-2c5d-4e8f-9a01-ac3d4e5f6072",
+      "name": "Folder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -288
+      ],
+      "parameters": {
+        "jsCode": "// Target folder: explicit folder_id (study-level docs) or the folder of the interview's recording.\nconst v = $('Validate').first().json;\nconst parent = v.folder_id || ($('Folder Lookup').isExecuted ? $('Folder Lookup').first().json.parents[0] : '');\nif (!parent) throw new Error('could not resolve target folder');\nreturn [{ json: { parent } }];"
+      }
+    }
+  ],
+  "connections": {
+    "When Called": {
+      "main": [
+        [
+          {
+            "node": "Check API Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Study Doc?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Interview": {
+      "main": [
+        [
+          {
+            "node": "Resolve Recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Recording": {
+      "main": [
+        [
+          {
+            "node": "Folder Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Folder Lookup": {
+      "main": [
+        [
+          {
+            "node": "Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Existing Doc": {
+      "main": [
+        [
+          {
+            "node": "Doc Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Doc Exists?": {
+      "main": [
+        [
+          {
+            "node": "Pick Doc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Empty Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Empty Doc": {
+      "main": [
+        [
+          {
+            "node": "Pick Doc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Doc": {
+      "main": [
+        [
+          {
+            "node": "Write Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Content": {
+      "main": [
+        [
+          {
+            "node": "Respond Published",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Study Doc?": {
+      "main": [
+        [
+          {
+            "node": "Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Find Interview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Folder": {
+      "main": [
+        [
+          {
+            "node": "Find Existing Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
