@@ -1,0 +1,15 @@
+{
+  "_note": "FICTIONAL demo transcript (app 'Jízdenka', participant D01). Invented for the README example — no real session behind it.",
+  "rows": [
+    {"segment_id": "DEMO-D01-T0001", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 62.0, "t_end_s": 70.0, "speaker": "participant", "text_cs": "Asi je to aplikace na jízdenky, ale nevím, jestli i na vlak, nebo jen na MHD."},
+    {"segment_id": "DEMO-D01-T0002", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 75.0, "t_end_s": 78.0, "speaker": "moderator", "text_cs": "Co byste udělal teď?"},
+    {"segment_id": "DEMO-D01-T0003", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 80.0, "t_end_s": 86.0, "speaker": "participant", "text_cs": "Hledal bych, kde se kupuje jízdenka na zítra."},
+    {"segment_id": "DEMO-D01-T0004", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 190.0, "t_end_s": 196.0, "speaker": "participant", "text_cs": "Tady vidím jen jízdenky na teď. Kde se mění datum?"},
+    {"segment_id": "DEMO-D01-T0005", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 214.0, "t_end_s": 220.0, "speaker": "participant", "text_cs": "Aha, to je pod tou ikonkou kalendáře. To bych sám nenašel."},
+    {"segment_id": "DEMO-D01-T0006", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 236.0, "t_end_s": 239.0, "speaker": "moderator", "text_cs": "Je to tam, kde jste to čekal?"},
+    {"segment_id": "DEMO-D01-T0007", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 241.0, "t_end_s": 246.0, "speaker": "participant", "text_cs": "Ne, čekal bych to hned u výběru zastávky."},
+    {"segment_id": "DEMO-D01-T0008", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 300.0, "t_end_s": 306.0, "speaker": "participant", "text_cs": "Zaplaceno, ale nevím, jestli platí od zítřka, nebo od teď."},
+    {"segment_id": "DEMO-D01-T0009", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 420.0, "t_end_s": 426.0, "speaker": "participant", "text_cs": "Dal bych pětku, protože datum jsem hledal dlouho."},
+    {"segment_id": "DEMO-D01-T0010", "interview_id": "DEMO-D01", "run_id": "demo", "t_start_s": 432.0, "t_end_s": 436.0, "speaker": "participant", "text_cs": "Jinak osmička, je to přehledné."}
+  ]
+}

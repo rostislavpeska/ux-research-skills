@@ -25,6 +25,51 @@ recordings (Drive) ─► n8n: ingest → Gemini (transcript · screen timeline 
                                    quotes inserted by script, board JSON ─► renderer (FigJam)
 ```
 
+## What it looks like (fictional demo)
+
+Everything below is **invented** — a made-up ticket app "Jízdenka", participant D01, wireframes
+instead of product screenshots. No client or participant data. The board language is Czech (the
+documentation language of the first study); an English version will follow. Real boards stay
+private to the team and the client.
+
+**Session overview** — timeline plan vs actual, screen coverage, ranked problems, GOMS ⚠ points
+confirmed or not:
+
+![Session overview column](docs/images/demo-board-overview.png)
+
+**Task walkthrough** — one card per step: screenshot with markers (numbered circle = click, ring =
+cursor, dashed box = where attention must go), status, what happened, verbatim quotes with
+timestamps (inserted by script, never typed), "Proč" = interpretation:
+
+![Task walkthrough](docs/images/demo-board-walkthrough.png)
+
+**Board layout** — one column per session block, left to right in session order; summary on top,
+walkthrough below:
+
+![Board layout](docs/images/demo-board-layout.png)
+
+Reproduce the demo board JSON from the files in `.claude/skills/ux-interview-analysis/examples/demo/`:
+
+```bash
+cd .claude/skills/ux-interview-analysis && mkdir -p out
+python scripts/render_quotes.py examples/demo/board.draft.txt examples/demo/transcript_rows.json --lang cs -o out/board.txt
+python scripts/board_draft.py out/board.txt -o out/board.json
+python scripts/figjam_code.py out/board.json --column task1 --index 1   # → use_figma
+```
+
+**GOMS output** — `klm.py` on the fictional demo model (excerpt). The method ratio is the headline,
+not the seconds:
+
+| Task | Method | Nominal (s) | Reported range |
+|---|---|---:|---|
+| M6.1 | D1 — Both files at once onto the empty tile | 6.6 | 5–10 s |
+| M6.1 | D2 — One file at a time | 15.5 | 12–19 s |
+| M6.2 | form — Form dialog | 19.4 | 15–28 s |
+| M6.2 | chat — In-app AI chat | 13.8 | 11–21 s |
+
+Ratios: D2 / D1 = **2.33** · form / chat = **1.41** (3.25 without free-text typing). These become
+⚠ critical points and post-task questions in the session script.
+
 ## Repository map
 
 | Path | What |

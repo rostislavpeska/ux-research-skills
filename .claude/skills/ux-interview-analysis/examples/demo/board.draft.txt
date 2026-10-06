@@ -1,0 +1,53 @@
+=== COLUMN overview | Přehled sezení · DEMO-D01
+title: Přehled sezení — DEMO-D01 (fiktivní ukázka)
+context: Fiktivní aplikace „Jízdenka“ · respondent D01 · 8 minut · všechna data jsou vymyšlená a slouží jen jako ukázka formátu boardu.
+=== CARD grey | Časová osa sezení (plán scénáře → skutečnost → sekce boardu)
+1 Web · plán 0:00–0:02 · 00:55–01:20 · Web
+2 Úloha 1 Jízdenka na zítra · plán 0:02–0:06 · 01:20–05:10 · Úloha 1
+3 Závěr a hodnocení · plán 0:06–0:08 · 06:50–07:30 · Závěr a hodnocení
+=== CARD grey | Pokrytí obrazovky klienta
+Aplikace byla na sdílené obrazovce 412 s. Všech 412 s patří do sekcí tohoto boardu — ověřeno skriptem nad časovou osou obrazovky.
+=== CARD red | Nejdůležitější problémy (seřazeno)
+1 Problém · UX problém — Změnu data nenašel bez nápovědy: výběr data je schovaný pod ikonou kalendáře v hlavičce. → Úloha 1
+2 Hraniční · UX problém — Po zaplacení nevěděl, od kdy jízdenka platí. → Úloha 1
+=== CARD blue | Kritická místa ⚠ z GOMS
+Úloha 1 ⚠1 Kde změnit datum — potvrzeno: hledal ~24 s, pak ikona kalendáře.
+Úloha 1 ⚠2 Potvrzení platnosti — potvrzeno: obrazovka po platbě neukazuje začátek platnosti.
+=== NOTE
+Statusy kroků: OK · Hraniční · Problém · Info. Citace jsou doslovné z (fiktivního) přepisu; [mm:ss] = čas v nahrávce. Interpretace jsou označené „Proč:“.
+
+=== COLUMN task1 | Úloha 1 Jízdenka na zítra · DEMO-D01
+title: Úloha 1 — Kupte si jízdenku na zítřejší ráno
+context: 01:20 → 05:10 ≈ 3 min 50 s · fiktivní aplikace „Jízdenka“ · respondent D01 · kroky ověřené na snímcích (zde ilustrační wireframy).
+=== CARD grey | Zadání a výsledek
+Výsledek: S NÁPOVĚDOU — datum našel až po nápovědě; jízdenku koupil.
+Čas: 3 min 50 s · GOMS: 41 s (modelovaná cesta).
+=== CARD red | Zjištění
+1 Problém · UX problém — Výběr data je schovaný pod ikonou kalendáře v hlavičce; respondent ho hledal u zastávek. (Krok 2)
+2 Hraniční · UX problém — Po platbě chybí začátek platnosti jízdenky. (Krok 3)
+=== STEP s1 | OK
+title: 1 · 01:20–01:40 · Výběr zastávek
+Respondent: vybral nástupní a cílovou zastávku (kolečko = klik).
+Řekl: {{q:01:20}}
+=== STEP s2 | Problém
+title: 2 · 03:10–03:34 · Kde se mění datum?
+Respondent: hledal datum u zastávek; ikonu kalendáře v hlavičce (rámeček, kroužek = kurzor) našel až po nápovědě moderátora, ~24 s.
+Řekl: {{q:03:10}}
+{{q:03:34}}
+Moderátor: {{q:03:56}}
+Řekl: {{q:04:01}}
+Proč: datum je součást hledání spojení, ale ovládací prvek je oddělený od polí zastávek.
+=== STEP s3 | Hraniční
+title: 3 · 05:00 · Platí od kdy?
+Systém: „Zaplaceno“ bez data a času začátku platnosti (rámeček).
+Řekl: {{q:05:00}}
+
+=== COLUMN close | Závěr a hodnocení · DEMO-D01
+title: Závěr a hodnocení
+context: 06:50 → 07:30 · hodnocení slovně (1–10) · fiktivní ukázka.
+=== CARD grey | Hodnocení 1–10 (slovně)
+1. Věděl/a jsem, jak koupit jízdenku na jiný den. — 5 · {{q:07:00}}
+2. Aplikace působí přehledně. — 8 · {{q:07:12}}
+=== CARD red | Říká vs. dělá
+Výrok 2 = 8 („přehledné“), ale úloha 1 se bez nápovědy nepodařila.
+Výklad: hodnocení ukazuje postoj, hlavním důkazem jsou výsledky úloh.

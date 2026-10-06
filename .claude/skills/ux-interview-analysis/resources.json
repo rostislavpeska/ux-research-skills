@@ -3,7 +3,9 @@
   "files": [
     ".gitignore",
     "SKILL.md",
+    "examples/demo/board.draft.txt",
     "examples/demo/glossary.txt",
+    "examples/demo/transcript_rows.json",
     "locales/README.md",
     "locales/cs.yaml",
     "locales/en.yaml",
