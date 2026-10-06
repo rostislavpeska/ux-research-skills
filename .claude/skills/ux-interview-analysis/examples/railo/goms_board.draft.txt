@@ -1,0 +1,111 @@
+=== COLUMN overview | GOMS overview · T1
+title: Railo — GOMS test design · T1 “Buy a ticket” (fictional app)
+context: Task T1: buy a ticket Prague → Brno for tomorrow around 7:30, window seat · two methods walked on a 1440 × 860 desktop viewport · KLM, expert user, error-free · model: goms-testing/examples/railo/model.yaml, numbers from klm.py. The output is a set of hypotheses for the sessions, never findings.
+=== CARD grey | Time per method (KLM)
+A · Search form — 9 steps · 23.1 s nominal · high 27.8 s · reported range 18–34 s
+B · AI assistant — 6 steps · 22.7 s nominal · high 24.1 s · reported range 18–29 s · 10.4 s without the 44 typed characters
+Ratio form / assistant = 1.02: a tie on paper. 2.2 if the user does not have to type (for example dictates).
+=== CARD red | Critical points ⚠ — what to watch in the sessions
+⚠1 Form, step 5 · The form never asks for the date. The only control is a 24 px calendar icon on the results, ~700 px from the cursor. Expert path 2.65 s; a first-time user has to search. Watch: time from Search to the calendar click.
+⚠2 Form, step 9 · The confirmation screen in the prototype shows the time but not the date (payment itself not executed). Watch: does the user check the date afterwards?
+⚠3 Assistant, step 2 · 12.3 of the 22.7 s are typing. The method ratio depends on typing speed and on how long the request is. Watch: characters typed and typing time.
+=== CARD amber | Selection rules (hypotheses for the session script)
+Form: users who know the route and want control; the risk is the date.
+Assistant: users who describe a goal in one sentence; needs trust in the answer. Relevance of the answers was not assessed (no message sent).
+Ask after both tasks: “Which way would you use tomorrow morning, and why?”
+=== CARD grey | Model debt — what this model cannot tell you
+Expert and error-free: no searching, no mistakes, no learning. Real users are slower; the ratio is the headline, not the seconds.
+System response (R) is left out; measure the assistant's answer time separately (measure_r.py on a live app).
+Pay and Send were modelled, NOT EXECUTED (state changes).
+M placement follows references/m-rules.md; the scroll in the high estimate is an assumption.
+=== NOTE
+Status pills: OK = routine step · Borderline = cost or risk worth watching · Problem = critical point ⚠ · Info = modelled but not executed, or not timed. Markers: numbered red circle = click (outline only = modelled, NOT EXECUTED), red dashed box = where attention must go, dashed arrow = mouse path, blue dashed box = system output.
+=== STEP ops | Info
+title: Where the seconds go — operators per method
+M = mental act 1.35 s · P = point 1.1 s · B = button press or release 0.1 s (a click = BB) · H = hands to keyboard or mouse 0.4 s · K = keystroke 0.28 s.
+Form: 8 M · 8 P · 16 B · 2 H · 4 K = 23.1 s.
+Assistant: 4 M · 3 P · 6 B · 2 H · 45 K = 22.7 s.
+The form pays in decisions and pointing; the assistant pays in typing.
+
+=== COLUMN form | Method A · Search form
+title: Method A — Search form · 9 steps · 23.1 s (range 18–34 s)
+context: Selection rule (hypothesis): users who already know the route type it into the form; the date control is the risk. Each card: what the user does, KLM operators → seconds · cumulative time, mouse, attention, why.
+=== STEP f1 | OK
+title: 1 · Click the “To” field · 2.65 s
+User: points to the empty “To” field and clicks (1).
+KLM: M P BB → 1.35 + 1.10 + 0.20 = 2.65 s · cumulative 2.65 s
+Mouse: from the middle of the page to the field (dashed arrow).
+Why: pointing at a new target starts with a decision (M, rule 0).
+=== STEP f2 | OK
+title: 2 · Type “Brno” · 1.52 s
+User: moves the hands to the keyboard and types 4 characters.
+KLM: H 4K → 0.40 + 1.12 = 1.52 s · cumulative 4.17 s
+Why: a typed argument costs no M per keystroke.
+=== STEP f3 | Borderline
+title: 3 · Pick “Brno hl.n.” from the suggestions · 3.05 s
+User: back to the mouse, picks the main station in the list (2).
+KLM: H M P BB → 0.40 + 1.35 + 1.10 + 0.20 = 3.05 s · cumulative 7.22 s
+Attention: the expert model has no visual search in the list, but three “Brno” entries look alike (density debt).
+=== STEP f4 | Borderline
+title: 4 · Click “Search” · 2.65 s
+User: clicks Search (3).
+KLM: M P BB → 2.65 s · cumulative 9.87 s
+Attention: the chip still says “Today · now” (box) — the form never asks for the date.
+=== STEP f5 | Problem
+title: 5 · ⚠1 Find the date control, click the calendar icon · 2.65 s (high 6.0 s)
+User: has to notice that the results are for today and find the only date control: a 24 px icon in the results header (4).
+KLM: M P BB → 2.65 s · cumulative 12.52 s · the high estimate adds an M and a scroll (S, assumed 2.0 s) → 15.87 s
+Mouse: ~700 px to a 24 px target (Fitts: small and far away).
+Why: an expert knows the icon; a first-time user has to search for it. The biggest risk in this task.
+=== STEP f6 | OK
+title: 6 · Pick tomorrow in the calendar · 2.65 s
+User: clicks Wed 7 (5) in the calendar (box).
+KLM: M P BB → 2.65 s · cumulative 15.17 s
+=== STEP f7 | OK
+title: 7 · Select the 07:32 departure · 2.65 s
+User: clicks the 07:32 row (6).
+KLM: M P BB → 2.65 s · cumulative 17.82 s
+Attention: for an expert, reading six rows costs no M.
+=== STEP f8 | Borderline
+title: 8 · Pick a window seat · 2.65 s (high 4.0 s)
+User: clicks seat 23 (7).
+KLM: M P BB → 2.65 s · cumulative 20.47 s · the high estimate adds an M to check the legend
+Attention: window and aisle seats differ by colour only (box = legend).
+=== STEP f9 | Info
+title: 9 · Pay · 2.65 s · NOT EXECUTED
+User: would click Pay (outline 8).
+KLM: M P BB → 2.65 s · cumulative 23.12 s
+Why: a real payment is a state change, so it is modelled and NOT EXECUTED. ⚠2: the prototype's confirmation screen shows no date — check it in the session.
+
+=== COLUMN chat | Method B · AI assistant
+title: Method B — AI assistant · 6 steps · 22.7 s (range 18–29 s)
+context: Selection rule (hypothesis): users who prefer to describe the goal in a sentence; needs trust in the answer. The answer on the screenshots is a prototype mock-up — nothing was sent to the assistant.
+=== STEP c1 | OK
+title: 1 · Click “Ask Railo” · 2.65 s
+User: opens the assistant (1).
+KLM: M P BB → 2.65 s · cumulative 2.65 s
+Mouse: from the middle of the page to the launcher in the corner (dashed arrow).
+=== STEP c2 | Borderline
+title: 2 · ⚠3 Type the request (44 characters) · 12.72 s
+User: types “Prague to Brno tomorrow around 7:30, window” (box).
+KLM: H 44K → 0.40 + 12.32 = 12.72 s · cumulative 15.37 s
+Why: more than half of the method is typing. 44 characters is an explicit assumption — measure the real length in the session.
+=== STEP c3 | Info
+title: 3 · Send with Enter · 1.63 s · NOT EXECUTED
+User: would press Enter (outline 2).
+KLM: M K → 1.35 + 0.28 = 1.63 s · cumulative 17.00 s
+Why: an Enter that ends a variable string keeps its M (rule 4). Sending was not approved, so it is modelled and NOT EXECUTED.
+=== STEP c4 | Info
+title: 4 · Wait for the answer · R, not modelled
+System: the assistant answers (blue box).
+KLM: R → left out · cumulative 17.00 s
+Why: system response time is measured, never predicted. On a live app use measure_r.py.
+=== STEP c5 | OK
+title: 5 · Click “Book” on the 07:32 card · 3.05 s (high 4.4 s)
+User: back to the mouse, books the 07:32 train (3).
+KLM: H M P BB → 3.05 s · cumulative 20.05 s · the high estimate adds an M to compare the three cards
+=== STEP c6 | Info
+title: 6 · Pay · 2.65 s · NOT EXECUTED
+User: would click Pay (outline 4).
+KLM: M P BB → 2.65 s · cumulative 22.70 s
+Why: a real payment is a state change, so it is modelled and NOT EXECUTED.

@@ -1,0 +1,147 @@
+=== COLUMN overview | Session overview · P03
+title: Session overview — Railo study RL1 · participant P03 (fictional)
+context: Fictional app “Railo” (train tickets) · P03 = weekday commuter, thinks aloud in Czech · moderated remote session, 21 min 30 s · board in English; quotes verbatim in Czech with an English translation (EN). Everything on this board is invented to show the format.
+=== CARD grey | Session timeline (script plan → actual → board section)
+1 Intro & consent · plan 0:00–0:03 · 00:00–03:05 · not on the board (nothing shared)
+2 Warm-up: persona board · plan 0:03–0:06 · 03:05–06:10 · Warm-up
+3 Website first impression · plan 0:06–0:08 · 06:10–07:40 · Website
+4 Task 1 search form + debrief · plan 0:08–0:11 · 07:40–11:20 · Task 1 (40 s over plan)
+5 Task 2 AI assistant + trust talk · plan 0:11–0:16 · 11:20–16:00 · Task 2
+6 Closing & rating card · plan 0:16–0:20 · 16:00–19:40 · Closing
+7 Wrap-up · 19:40–21:30 · not on the board (screen share off)
+=== CARD grey | Screen coverage
+The product was on the shared screen for 590 s (website 90 s, app 500 s). All 590 s belong to a section of this board: coverage.py over the screen timeline reports 0 s uncovered. The persona board and the rating card are study materials, reported in their own sections.
+=== CARD red | Top problems (ranked)
+1 Problem · The search form never asks for the date. The only way to change it is a 24 px calendar icon on the results; P03 hunted for it for 41 s and scrolled twice. → Task 1, step 2
+2 Problem · The payment confirmation shows the time but not the date: P03 could not tell whether she had bought tomorrow's ticket. → Task 1, step 6
+3 Borderline · Seat legend: window and aisle seats differ by colour only; P03 asked which colour means window. → Task 1, step 5
+4 Borderline · Typing is the assistant's bottleneck: 48 characters took 24 s, and P03 would rather dictate. → Task 2, step 1
+=== CARD blue | GOMS critical points ⚠ → what the session showed
+⚠1 Date control (form, step 5) — CONFIRMED: the date phase took 53 s against 5.3 s predicted (10×).
+⚠2 Confirmation without a date — CONFIRMED: P03 asked aloud whether the ticket was for tomorrow.
+⚠3 Free text decides the assistant's time — CONFIRMED: 24 s of typing against 12.7 s modelled (P03 types about 2× slower than the KLM default).
+Method ratio: GOMS predicted a tie (form 23.1 s, assistant 22.7 s). Observed: form 1 min 52 s, assistant 38 s. Critical point ⚠1 explains most of the gap.
+=== CARD amber | Says vs does
+Rated “The app felt fast” 8/10, yet task 1 took 4.8× the predicted time. She blamed herself, not the app: {{q:17:48}}
+Rated “I would know how to buy a ticket for another day” 4/10 — consistent with what she did.
+Reading: ratings show attitude; the task results are the evidence.
+=== NOTE
+Step statuses: OK · Borderline · Problem · Info. Screenshot markers: numbered red circle = click, blue ring = cursor / where she looked, red dashed box = where attention had to go, dashed arrow = mouse path, purple arrow = scroll, blue dashed box = system output. Quotes are verbatim from the (fictional) transcript and inserted by script; [mm:ss] = time in the recording; EN = translation. Interpretation is marked “Why:”.
+=== STEP chart | Info
+title: Predicted vs observed — where the extra 89 seconds went
+Task 1 by phase (GOMS model vs observed) and both task totals. The date phase alone: 53 s observed against 5.3 s predicted.
+The assistant total includes a 6 s wait for the answer, which KLM leaves out (R).
+Source: goms-testing/examples/railo/model.yaml (klm.py) and the step times on this board.
+
+=== COLUMN warmup | Warm-up · persona board · P03
+title: Warm-up — “Three travellers. How much of each one is in you?”
+context: 03:05 → 06:10 · persona board shared on screen · P03 places herself between three fictional personas; the moderator writes her words on stickies.
+=== CARD grey | Result
+Mostly Klára (weekday commuter, books the evening before), a bit of Tomáš (leisure trips), not Petra (business travel paid by the company). The tasks are set in Klára's situation: tomorrow's commute, window seat.
+=== STEP p1 | Info
+title: 1 · 03:40–05:20 · “Mostly Klára”
+Moderator: {{q:03:40}}
+Said: {{q:04:22}}
+{{q:05:10}}
+Why: she plans the evening before, so buying for “tomorrow” is her main job — which makes the date control critical for her.
+
+=== COLUMN web | Website first impression · P03
+title: Website — first impression
+context: 06:10 → 07:40 · Railo landing page · P03 explains the offer in her own words before any task.
+=== STEP w1 | OK
+title: 1 · 06:20–07:00 · Understood the offer in about 4 s
+Participant: read the headline first (box) and explained the offer correctly: search a train and buy a ticket, or ask the assistant.
+Said: {{q:06:25}}
+{{q:06:58}}
+Why: the headline promises “in 30 seconds” — the bar that task 1 later misses by a minute and a half.
+
+=== COLUMN task1 | Task 1 · Search form · P03
+title: Task 1 — Buy a ticket Prague → Brno for tomorrow around 7:30, window seat
+context: 07:46 → 09:50 task, 10:05 → 11:20 debrief · search form · every step checked against video frames.
+=== CARD grey | Task and result
+Moderator: {{q:07:46}}
+Result: COMPLETED without help, in 1 min 52 s (07:52 → 09:44). GOMS predicted 23.1 s (range 18–34 s).
+Phases, observed vs predicted: route 14 s vs 9.9 s · date 53 s vs 5.3 s · time 10 s vs 2.7 s · seat 18 s vs 2.7 s · pay 17 s vs 2.7 s.
+=== CARD red | Findings
+1 Problem · No date in the search form; the only date control is a 24 px icon on the results. (Step 2)
+2 Borderline · The seat legend tells window seats apart by colour only. (Step 5)
+3 Problem · The confirmation shows the time, not the date. (Step 6)
+=== STEP o1 | OK
+title: 1 · 07:52–08:06 · Route entered in 14 s
+Participant: clicked “To” (1), typed “Brno”, picked “Brno hl.n.” from the suggestions (2) and clicked Search (3). The chip under the form still said “Today · now” — she did not notice it.
+Said: {{q:08:03}}
+GOMS: steps 1–4, 9.9 s predicted.
+=== STEP o2 | Problem
+title: 2 · 08:06–08:47 · 41 s looking for the date
+Participant: read the results header (ring), scanned the list, scrolled down twice and back up (purple arrow) before she noticed the calendar icon.
+Said: {{q:08:15}}
+{{q:08:31}}
+{{q:08:39}}
+Why: the date belongs to the search, but the form never asks for it, and the only control is a 24 px icon far from where she was looking. GOMS critical point ⚠1 confirmed.
+=== STEP o3 | OK
+title: 3 · 08:47–08:59 · Calendar icon → tomorrow
+Participant: clicked the icon (4) and picked Wed 7 Oct in the calendar, checking the weekday aloud. 12 s.
+Said: {{q:08:58}}
+=== STEP o4 | OK
+title: 4 · 08:59–09:09 · 07:32 departure chosen
+Participant: picked the 07:32 row on tomorrow's list (5) in 10 s.
+GOMS: step 7, 2.7 s predicted — reading the six rows took the rest.
+=== STEP o5 | Borderline
+title: 5 · 09:09–09:27 · Window seat — “blue or grey?”
+Participant: looked at the legend (ring), asked which colour means window, then picked seat 23 (6).
+Said: {{q:09:15}}
+Why: window and aisle differ by colour only. The GOMS high estimate added a check of the legend here; observed 18 s against 2.7 s.
+=== STEP o6 | Problem
+title: 6 · 09:27–09:50 · Paid — but for which day?
+System: “Payment successful · 07:32 → 10:05 · IC 503” — no date (box).
+Said: {{q:09:50}}
+Why: after 41 s of struggling with the date, the confirmation does not confirm it. GOMS critical point ⚠2 confirmed.
+=== STEP o7 | Info
+title: 7 · 10:12–10:40 · Debrief: “the date belongs next to To”
+Moderator: {{q:10:12}}
+Said: {{q:10:16}}
+Participant: went back to the search form and pointed next to the “To” field (box).
+
+=== COLUMN task2 | Task 2 · AI assistant · P03
+title: Task 2 — The same trip through the assistant
+context: 11:20 → 16:00 · Railo assistant · the task ends at Book (no second payment), followed by a talk about trust.
+=== CARD grey | Task and result
+Moderator: {{q:11:22}}
+Result: COMPLETED without help in 38 s (11:34 → 12:12), of which 6 s was waiting for the answer. GOMS up to Book: 20.1 s (plus the answer time, which KLM leaves out).
+Typing: 48 characters in 24 s. The model assumed 44 characters in 12.7 s.
+=== CARD amber | Caveat
+Same goal as task 1, right after it: she already knew the route and the time she wanted. The order was not counterbalanced, so task 2 is flattered — do not read 38 s against 1 min 52 s as a clean comparison of the two methods.
+=== STEP a1 | Borderline
+title: 1 · 11:34–12:00 · Typed the whole request — 24 s
+Participant: opened the assistant and typed “Prague to Brno tomorrow around 7:30, window seat” (box): 48 characters, slowly, with one correction.
+Why: typing is the assistant's main cost, and she later said she would rather dictate. GOMS critical point ⚠3 confirmed.
+=== STEP a2 | OK
+title: 2 · 12:00–12:12 · Answer in 6 s, booked 07:32
+System: three morning trains for Wed 7 Oct, after 6 s (blue box = the one she chose).
+Participant: read the date aloud, compared the cards and clicked Book on 07:32 (1).
+Said: {{q:12:07}}
+{{q:12:10}}
+=== STEP a3 | Borderline
+title: 3 · 13:41–14:40 · Trust: “half-way”
+Moderator: {{q:13:41}}
+Said: {{q:13:47}}
+{{q:14:30}}
+Why: the assistant showed the date (box) where the form's confirmation did not — and she would still check it on the ticket.
+
+=== COLUMN close | Closing & rating · P03
+title: Closing — rating card (scores said aloud, 1–10)
+context: 16:00 → 19:40 · rating card shared on screen, the moderator filled in what P03 said · every score checked against the recording.
+=== CARD grey | Ratings 1–10 (spoken)
+1. After a few seconds on the website I knew what the app is for. — 9 · {{q:16:20}}
+2. I would know how to buy a ticket for another day. — 4 · {{q:16:41}}
+3. I understood the prices and times on the results screen. — 9 · {{q:17:02}}
+4. I would trust the assistant's suggestion. — 6–7 (she said a range) · {{q:17:20}}
+5. The app felt fast. — 8 · {{q:17:48}}
+=== CARD amber | Says vs does
+Statement 5 = 8 (“fast”), yet task 1 took 1 min 52 s against 23 s predicted — she blamed herself, not the app.
+Statement 2 = 4 matches what she did: the date was the hardest part.
+Reading: ratings show attitude; the task results are the evidence.
+=== STEP r1 | Info
+title: 1 · 16:41 · The lowest score: buying for another day
+Participant: gave statement 2 a 4 (box) and tied it to the calendar icon.
+Said: {{q:16:41}}

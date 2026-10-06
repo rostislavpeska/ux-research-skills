@@ -174,6 +174,7 @@ test the participant link in a private window before every session.
 | `prompts/rating.v1.md` + `schemas/rating.v1.json` | spoken scores per rating-card statement (cross-check of the transcript) |
 | `locales/*.yaml` | all fixed strings per documentation language |
 | `examples/demo/glossary.txt` | spelling help only (product terms, never participant data) |
+| `examples/railo/` | FICTIONAL end-to-end demo (README): session + GOMS board drafts, transcript rows with `text_en`, screen timeline + session map for `coverage.py` |
 | `templates/study-brief.md` | per-study brief (Step 0) |
 | `templates/session-script.md` | session script skeleton (blocks, ★/○ questions, ⚠ critical points, expected answers) |
 | `templates/observer-notes-guide.{en,cs}.md` | setup + rules for the observer's timestamped notes |
@@ -184,7 +185,7 @@ test the participant link in a private window before every session.
 | `scripts/coverage.py` | timeline + session map → client-surface coverage gate (pure) |
 | `scripts/obs_print.py` | observe runs → compact step list (pure) |
 | `scripts/frames.py` | annotated, cropped screenshots from the local recording |
-| `scripts/render_quotes.py` | `{{q:MM:SS}}` → verbatim quote with locale quote marks |
+| `scripts/render_quotes.py` | `{{q:MM:SS}}` → verbatim quote with locale quote marks; `--translation text_en` adds the row's translation under each quote |
 | `scripts/board_draft.py` | rendered board draft → board JSON (pure) |
 | `scripts/figjam_code.py` | board JSON column → `use_figma` code for the FigJam renderer (pure) |
 | `scripts/board_hashcheck.py` | board JSON vs hashes returned by the renderer (pure) |

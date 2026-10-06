@@ -49,6 +49,7 @@ method ratios matter more than absolute seconds, and every report says so.
 | `scripts/measure_r.py` | optional Playwright replay of **verified read-only** steps to measure R |
 | `examples/demo/model.yaml` | regression fixture for a fictional app (see tests) |
 | `examples/demo/app-profile.yaml` | profile skeleton with TODOs, no flows |
+| `examples/railo/model.yaml` | showcase model behind the README demo (fictional app, form vs AI assistant) |
 
 Run the scripts from this skill's directory (`skills/goms-testing/` here, `.claude/skills/goms-testing/` once installed).
 They need Python 3.10+ and PyYAML; `measure_r.py` also needs `playwright`.

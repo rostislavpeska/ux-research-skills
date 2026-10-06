@@ -1,0 +1,129 @@
+# Railo (FICTIONAL train-ticket app) — showcase model for the README demo.
+# The app, its screens and every label are invented; the KLM arithmetic is real (klm.py).
+schema: goms-model/1
+app: Railo (fictional)
+profile: null
+viewport: 1440x860
+walked: null
+prior_model: null
+
+tasks:
+  - id: T1
+    title: Buy a ticket Prague → Brno for tomorrow around 7:30, window seat
+    triage: routine
+    methods:
+      - id: form
+        name: Search form
+        selection_rule: "Hypothesis: users who already know the route type it into the form; the date control is the risk."
+        free_text_chars: 0
+        steps:
+          - label: Click the "To" field
+            target: To field
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [destination]
+            note: "Rule 0: pointing at a command → M."
+          - label: Type "Brno"
+            target: destination
+            ops_low: H 4K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Typed argument → no M per keystroke."
+          - label: Pick "Brno hl.n." from the suggestions
+            target: suggestion
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Visual search in the list has no M (expert assumption) → density debt."
+          - label: Click "Search"
+            target: Search button
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Date is still 'Today · now' — the form never asks for it."
+          - label: Find the date control and click the calendar icon
+            target: calendar icon (24 px)
+            ops_low: M P BB
+            ops_extra: M S
+            status: not_verified
+            chunks: [date]
+            note: "Expert knows the icon; a novice searches the page (extra M + scroll in high). Fitts: 24 px target ~700 px from the cursor."
+          - label: Pick tomorrow in the calendar
+            target: calendar day
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: ""
+          - label: Select the 07:32 departure
+            target: 07:32 row
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Reading 6 rows has no M (expert)."
+          - label: Pick a window seat
+            target: seat map
+            ops_low: M P BB
+            ops_extra: M
+            status: not_verified
+            chunks: []
+            note: "High adds an M to check the window legend."
+          - label: Pay
+            target: Pay button
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "State change → modelled, NOT EXECUTED."
+      - id: chat
+        name: AI assistant
+        selection_rule: "Hypothesis: users who prefer describing the goal; needs trust in the answer (relevance not assessed — no message sent)."
+        free_text_chars: 44
+        steps:
+          - label: Click "Ask Railo"
+            target: assistant launcher
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [request]
+            note: ""
+          - label: Type the request (44 chars, free text)
+            target: request
+            ops_low: H 44K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "'Prague to Brno tomorrow around 7:30, window' — 44 chars is an explicit assumption."
+          - label: Send with Enter
+            target: Enter
+            ops_low: M K
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "Rule 4: Enter that ends a variable string keeps its M. Sending to the assistant was not approved → NOT EXECUTED."
+          - label: Wait for the answer
+            target: assistant answer
+            ops_low: R
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "R (LLM time) is always excluded; measure it separately."
+          - label: Click "Book" on the 07:32 card
+            target: Book button
+            ops_low: H M P BB
+            ops_extra: M
+            status: not_verified
+            chunks: []
+            note: "High adds an M to compare the three proposed cards."
+          - label: Pay
+            target: Pay button
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "State change → modelled, NOT EXECUTED."

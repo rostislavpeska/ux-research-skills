@@ -5,6 +5,7 @@
     "SKILL.md",
     "examples/demo/app-profile.yaml",
     "examples/demo/model.yaml",
+    "examples/railo/model.yaml",
     "references/cogulator-syntax.md",
     "references/goms-debt.md",
     "references/m-rules.md",

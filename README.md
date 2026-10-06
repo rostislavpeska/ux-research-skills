@@ -25,58 +25,102 @@ recordings (Drive) ─► n8n: ingest → Gemini (transcript · screen timeline 
                                    quotes inserted by script, board JSON ─► renderer (FigJam)
 ```
 
-## What it looks like (fictional demo)
+## What it looks like — one GOMS board, one testing board
 
-Everything below is **invented** — a made-up ticket app "Jízdenka", participant D01, wireframes
-instead of product screenshots. No client or participant data. The board language is Czech (the
-documentation language of the first study); an English version will follow. Real boards stay
-private to the team and the client.
+Everything in this section is **invented**: a made-up train-ticket app "Railo" and a fictional
+participant P03, a weekday commuter who thinks aloud in Czech. The boards are in English; her
+quotes stay verbatim in Czech with an English translation underneath. Both boards were built with
+this repo's scripts and FigJam renderer (texts hash-checked, screens = mock-ups of the fictional
+app). Real client boards stay private.
 
-**Session overview** — timeline plan vs actual, screen coverage, ranked problems, GOMS ⚠ points
-confirmed or not:
+**The task:** *buy a ticket Prague → Brno for tomorrow around 7:30, window seat.* Two ways to do it:
+the search form, or the app's AI assistant.
 
-![Session overview column](docs/images/demo-board-overview.png)
+### 1 · GOMS — predict before anyone tests
 
-**Task walkthrough** — one card per step: screenshot with markers (numbered circle = click, ring =
-cursor, dashed box = where attention must go), status, what happened, verbatim quotes with
-timestamps (inserted by script, never typed), "Proč" = interpretation:
+GOMS calls it a tie (form 23.1 s, assistant 22.7 s), and it marks the places where the form could
+break — the ⚠ critical points that the session script then watches.
 
-![Task walkthrough](docs/images/demo-board-walkthrough.png)
+![GOMS overview: time per method, critical points, selection rules, model debt](docs/images/goms-overview.png)
 
-**Board layout** — one column per session block, left to right in session order; summary on top,
-walkthrough below:
+Where the seconds go: the form pays in decisions and pointing, the assistant pays in typing.
 
-![Board layout](docs/images/demo-board-layout.png)
+![Where the seconds go — KLM operators per method](docs/images/goms-where-seconds-go.png)
 
-Reproduce the demo board JSON from the files in `.claude/skills/ux-interview-analysis/examples/demo/`:
+Every step of every method gets a card: what the user does, the KLM operators → seconds and the
+cumulative time, the mouse path, where attention must go, and why. Step 5 is the risk — the form
+never asks for the date, and the only date control is a 24 px icon:
+
+![GOMS walkthrough step: critical point 1, the 24 px calendar icon](docs/images/goms-step-critical.png)
+
+![GOMS walkthrough step: typing the request to the assistant](docs/images/goms-step-assistant.png)
+
+`klm.py` output for the model ([`examples/railo/model.yaml`](.claude/skills/goms-testing/examples/railo/model.yaml)):
+
+| Task | Method | Nominal (s) | High (s) | Reported range | Without free text (s) |
+|---|---|---:|---:|---|---:|
+| T1 | form — Search form | 23.1 | 27.8 | 18–34 s | 23.1 |
+| T1 | chat — AI assistant | 22.7 | 24.1 | 18–29 s | 10.4 |
+
+Ratio form / assistant = **1.02** (2.23 without the typing). The method ratio and the ⚠ points are
+the output, not the seconds: an expert, error-free model predicts *where to look*, never what users do.
+
+![GOMS board layout: overview + one walkthrough column per method](docs/images/goms-board-layout.png)
+
+### 2 · Testing — what the session actually showed
+
+The session board starts with the verdict: timeline (script plan → actual → board section), screen
+coverage, ranked problems, each GOMS ⚠ point confirmed or not, and where what she *said* differs
+from what she *did*.
+
+![Session overview: timeline, coverage, ranked problems, GOMS critical points, says vs does](docs/images/session-overview.png)
+
+GOMS called a tie; the session did not. The date phase took **53 s against 5.3 s predicted** —
+critical point ⚠1, exactly where the model said to look.
+
+![Predicted vs observed — task 1 by phase and both task totals](docs/images/session-predicted-vs-observed.png)
+
+Every step: an annotated screenshot (numbered circle = click, blue ring = where she looked, dashed
+box = where attention had to go, purple arrow = scroll), a status, what happened with timestamps,
+**verbatim quotes inserted by script — never typed** — with the translation, and the interpretation
+marked "Why:".
+
+![Session step: 41 s looking for the date](docs/images/session-step-date-hunt.png)
+
+![Session step: paid — but for which day?](docs/images/session-step-no-date.png)
+
+![Session step: the assistant answers in 6 s](docs/images/session-step-assistant.png)
+
+![Session board layout: one column per session block, left to right in session order](docs/images/session-board-layout.png)
+
+### Reproduce the demo
+
+The inputs are in [`ux-interview-analysis/examples/railo/`](.claude/skills/ux-interview-analysis/examples/railo/)
+(board drafts, transcript rows with `text_en`, screen timeline, session map):
 
 ```bash
-cd .claude/skills/ux-interview-analysis && mkdir -p out
-python scripts/render_quotes.py examples/demo/board.draft.txt examples/demo/transcript_rows.json --lang cs -o out/board.txt
-python scripts/board_draft.py out/board.txt -o out/board.json
-python scripts/figjam_code.py out/board.json --column task1 --index 1   # → use_figma
+cd .claude/skills/goms-testing
+python scripts/klm.py --md examples/railo/model.yaml          # GOMS numbers
+cd ../ux-interview-analysis && mkdir -p out
+python scripts/coverage.py examples/railo/timeline_runs.json examples/railo/session_map.json   # 590 of 590 s
+python scripts/render_quotes.py examples/railo/session_board.draft.txt examples/railo/transcript_rows.json \
+  --lang en --translation text_en -o out/session.txt         # 28 quotes, Czech + EN
+python scripts/board_draft.py out/session.txt -o out/session.json
+python scripts/board_draft.py examples/railo/goms_board.draft.txt -o out/goms.json
+python scripts/figjam_code.py out/session.json --column task1 --index 3   # → use_figma, one call per column
 ```
 
-**GOMS output** — `klm.py` on the fictional demo model (excerpt). The method ratio is the headline,
-not the seconds:
-
-| Task | Method | Nominal (s) | Reported range |
-|---|---|---:|---|
-| M6.1 | D1 — Both files at once onto the empty tile | 6.6 | 5–10 s |
-| M6.1 | D2 — One file at a time | 15.5 | 12–19 s |
-| M6.2 | form — Form dialog | 19.4 | 15–28 s |
-| M6.2 | chat — In-app AI chat | 13.8 | 11–21 s |
-
-Ratios: D2 / D1 = **2.33** · form / chat = **1.41** (3.25 without free-text typing). These become
-⚠ critical points and post-task questions in the session script.
+In a real run the screenshots come from the recording (`frames.py`) and every claim is checked on a
+video frame. The demo's mock screens and the two charts were made by hand for this README.
 
 ## Repository map
 
 | Path | What |
 |---|---|
-| `.claude/skills/goms-testing/` | GOMS/KLM skill: `SKILL.md`, references, templates, scripts, tests (fictional demo fixture) |
+| `.claude/skills/goms-testing/` | GOMS/KLM skill: `SKILL.md`, references, templates, scripts, tests; `examples/` = fictional models (test fixture + the Railo demo) |
 | `.claude/skills/ux-interview-analysis/` | analysis skill: `SKILL.md`, prompts, schemas, locales (`cs`, `en`), templates, scripts |
 | `…/ux-interview-analysis/templates/` | study brief, session script, observer-notes guides |
+| `…/ux-interview-analysis/examples/railo/` | inputs of the fictional demo boards above |
 | `…/ux-interview-analysis/n8n/` | setup + NocoDB tables (`README.md`), `sanitize.py`; the five workflow templates follow in the next release |
 | `…/ux-interview-analysis/renderers/figjam/` | draws the board JSON in FigJam through the Figma MCP |
 | `.claude/skills/skill-library-audit/` | companion: checks every package's declared resources (`resources.json`) |
