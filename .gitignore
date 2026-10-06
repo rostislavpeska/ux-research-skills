@@ -1,0 +1,17 @@
+# Participant data and working files never enter this repo.
+out/
+exports/
+*.mp4
+*.m4a
+*.mov
+eval/moments*
+# private literal maps for n8n/sanitize.py
+*private_map*.json
+__pycache__/
+.pytest_cache/
+
+# agent discovery link (created by scripts/setup_repo_skill_links.py) and local agent settings
+/.agents/
+/.claude/settings.local.json
+*.pyc
+runs/

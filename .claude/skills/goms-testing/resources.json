@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    ".gitignore",
+    "SKILL.md",
+    "examples/demo/app-profile.yaml",
+    "examples/demo/model.yaml",
+    "references/cogulator-syntax.md",
+    "references/goms-debt.md",
+    "references/m-rules.md",
+    "scripts/cogulator_export.py",
+    "scripts/klm.py",
+    "scripts/measure_r.py",
+    "scripts/sheet.py",
+    "templates/app-profile.yaml",
+    "templates/model.yaml",
+    "templates/report.md",
+    "tests/conftest.py",
+    "tests/test_exports.py",
+    "tests/test_klm.py",
+    "tests/test_measure_gate.py",
+    "tests/test_regression.py"
+  ],
+  "skills": [
+    "skill-library-audit"
+  ],
+  "external": [
+    {
+      "id": "python",
+      "kind": "executable",
+      "requiredFor": [
+        "klm",
+        "export",
+        "sheet",
+        "tests"
+      ],
+      "optional": false,
+      "note": "Python 3.10+; presence does not establish compatibility.",
+      "commands": [
+        "python",
+        "python3"
+      ]
+    },
+    {
+      "id": "pyyaml",
+      "kind": "python-package",
+      "requiredFor": [
+        "klm",
+        "export",
+        "sheet",
+        "tests"
+      ],
+      "optional": false,
+      "note": "Model and profile files are YAML.",
+      "distribution": "PyYAML",
+      "modules": [
+        "yaml"
+      ]
+    },
+    {
+      "id": "pytest",
+      "kind": "python-package",
+      "requiredFor": [
+        "tests"
+      ],
+      "optional": false,
+      "note": "Runs the bundled regression and gate tests.",
+      "distribution": "pytest",
+      "modules": [
+        "pytest"
+      ]
+    },
+    {
+      "id": "playwright",
+      "kind": "python-package",
+      "requiredFor": [
+        "measure-r"
+      ],
+      "optional": true,
+      "note": "Only for measure_r.py replay of verified read-only steps; needs a browser installed through Playwright.",
+      "distribution": "playwright",
+      "modules": [
+        "playwright"
+      ]
+    },
+    {
+      "id": "clean-browser",
+      "kind": "capability",
+      "requiredFor": [
+        "walkthrough"
+      ],
+      "optional": false,
+      "note": "A clean browser profile at a fixed viewport, never the user's logged-in browser; the agent must be able to read the page and stop before state changes."
+    }
+  ]
+}

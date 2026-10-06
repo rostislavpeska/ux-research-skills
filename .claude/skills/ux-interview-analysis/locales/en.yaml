@@ -1,0 +1,37 @@
+# English. Same keys as cs.yaml.
+code: en
+name: English
+name_native: English
+
+quotes: ["“", "”"]
+
+roles:
+  moderator: Moderator
+  participant: Participant
+  observer: Observer
+  unclear: Unclear
+
+prompt:
+  language_name: English
+  filler_examples: "um, uh, er, like, you know, I mean, so, well"
+  false_start_examples: '"I- I think", "it will- it would be"'
+  marker_laughter: "[laughter]"
+  marker_pause: "[pause]"
+  marker_inaudible: "[inaudible]"
+  marker_overlap: "[overlap]"
+
+transcript:
+  title: "Interview transcript – {id} (verbatim)"
+  heading: "Interview transcript – {id}"
+  intro:
+    - "Verbatim transcript. Machine-made, not yet reviewed by a person."
+    - "Times = minutes:seconds from the start of the recording."
+    - "Speakers: Moderator, Participant, Observer (Unclear = speaker cannot be identified)."
+    - "Markers: [inaudible], [laughter], [pause], [overlap] = overlapping speech; word- = unfinished word; … = trailing off."
+  duration: " Recording length {duration}."
+  audio_notes: "Audio notes"
+  table_header: ["Time", "Speaker", "Text"]
+  source: "Source: model {model} ({model_version}), prompt {prompt}, runs {runs}."
+
+summary:
+  title: "Session summary – {id}"

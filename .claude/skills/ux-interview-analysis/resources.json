@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    ".gitignore",
+    "SKILL.md",
+    "examples/demo/glossary.txt",
+    "locales/README.md",
+    "locales/cs.yaml",
+    "locales/en.yaml",
+    "n8n/README.md",
+    "n8n/sanitize.py",
+    "prompts/observe.v1.md",
+    "prompts/rating.v1.md",
+    "prompts/timeline.v1.md",
+    "prompts/transcript.v1.md",
+    "prompts/transcript.v2.md",
+    "renderers/figjam/README.md",
+    "renderers/figjam/build_column.js",
+    "schemas/observe.v1.json",
+    "schemas/rating.v1.json",
+    "schemas/timeline.v1.json",
+    "schemas/transcript.v1.json",
+    "schemas/transcript.v2.json",
+    "scripts/board_draft.py",
+    "scripts/board_hashcheck.py",
+    "scripts/build_request.py",
+    "scripts/coverage.py",
+    "scripts/doc_language.py",
+    "scripts/excerpt.py",
+    "scripts/figjam_code.py",
+    "scripts/frames.py",
+    "scripts/obs_print.py",
+    "scripts/render_quotes.py",
+    "scripts/segments.py",
+    "templates/observer-notes-guide.cs.md",
+    "templates/observer-notes-guide.en.md",
+    "templates/session-script.md",
+    "templates/study-brief.md"
+  ],
+  "skills": [
+    "skill-library-audit"
+  ],
+  "external": [
+    {
+      "id": "python",
+      "kind": "executable",
+      "requiredFor": [
+        "transcript",
+        "summary",
+        "board",
+        "coverage",
+        "sanitize"
+      ],
+      "optional": false,
+      "note": "Python 3.10+ for the bundled pure scripts.",
+      "commands": [
+        "python",
+        "python3"
+      ]
+    },
+    {
+      "id": "pyyaml",
+      "kind": "python-package",
+      "requiredFor": [
+        "transcript",
+        "summary",
+        "board"
+      ],
+      "optional": false,
+      "note": "Locale files are YAML.",
+      "distribution": "PyYAML",
+      "modules": [
+        "yaml"
+      ]
+    },
+    {
+      "id": "pillow",
+      "kind": "python-package",
+      "requiredFor": [
+        "screenshots"
+      ],
+      "optional": false,
+      "note": "frames.py draws markers and crops frames.",
+      "distribution": "Pillow",
+      "modules": [
+        "PIL"
+      ]
+    },
+    {
+      "id": "python-docx",
+      "kind": "python-package",
+      "requiredFor": [
+        "transcript"
+      ],
+      "optional": true,
+      "note": "Only for the optional .docx transcript export.",
+      "distribution": "python-docx",
+      "modules": [
+        "docx"
+      ]
+    },
+    {
+      "id": "ffmpeg",
+      "kind": "executable",
+      "requiredFor": [
+        "screenshots",
+        "verification"
+      ],
+      "optional": false,
+      "note": "Cuts frames from the local recording.",
+      "commands": [
+        "ffmpeg"
+      ]
+    },
+    {
+      "id": "n8n",
+      "kind": "capability",
+      "requiredFor": [
+        "ingest",
+        "transcript",
+        "observe",
+        "publish"
+      ],
+      "optional": false,
+      "note": "Self-hosted n8n with the five bundled workflows imported, credentials selected and placeholders replaced (n8n/README.md)."
+    },
+    {
+      "id": "nocodb",
+      "kind": "capability",
+      "requiredFor": [
+        "ingest",
+        "transcript",
+        "observe"
+      ],
+      "optional": false,
+      "note": "NocoDB base with ux_interviews, ux_runs, ux_transcript (n8n/README.md)."
+    },
+    {
+      "id": "gemini-api",
+      "kind": "capability",
+      "requiredFor": [
+        "ingest",
+        "transcript",
+        "observe"
+      ],
+      "optional": false,
+      "note": "Gemini API key with video input and the Files API; paid usage. Prompts were tuned on one Gemini Flash model."
+    },
+    {
+      "id": "google-drive",
+      "kind": "capability",
+      "requiredFor": [
+        "ingest",
+        "publish"
+      ],
+      "optional": false,
+      "note": "Drive OAuth credential in n8n; Editor on the study folder; recordings downloadable by viewers."
+    },
+    {
+      "id": "image-viewing-agent",
+      "kind": "capability",
+      "requiredFor": [
+        "verification",
+        "board"
+      ],
+      "optional": false,
+      "note": "The agent must open and inspect image files: every claim is verified on video frames before it reaches a deliverable."
+    },
+    {
+      "id": "figma-mcp",
+      "kind": "capability",
+      "requiredFor": [
+        "render-figjam"
+      ],
+      "optional": true,
+      "note": "Only for the FigJam renderer: Figma MCP with use_figma and upload_assets on an editable FigJam file."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t_start": { "type": "string", "description": "MM:SS in full-recording time" },
+          "t_end": { "type": "string", "description": "MM:SS in full-recording time" },
+          "speaker": { "type": "string", "enum": ["moderator", "participant", "observer", "unclear"] },
+          "text": { "type": "string", "description": "Verbatim speech in the language spoken" }
+        },
+        "required": ["t_start", "t_end", "speaker", "text"]
+      }
+    },
+    "language": { "type": "string", "description": "ISO 639-1 code of the main spoken language" },
+    "notes": { "type": "string" }
+  },
+  "required": ["segments", "language", "notes"]
+}

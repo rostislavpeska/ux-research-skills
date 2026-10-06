@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "intervals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t_start": { "type": "string" },
+          "t_end": { "type": "string" },
+          "surface": { "type": "string", "enum": ["client_web", "client_app", "client_docs", "whiteboard", "video_call", "file_storage", "os_desktop", "other_web", "not_shared"] },
+          "address": { "type": "string" },
+          "view": { "type": "string" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+        },
+        "required": ["t_start", "t_end", "surface", "address", "view", "confidence"]
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "required": ["intervals", "notes"]
+}

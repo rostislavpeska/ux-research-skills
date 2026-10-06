@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "n": { "type": "integer" },
+          "score_spoken": { "type": "string" },
+          "score_min": { "type": "integer" },
+          "score_max": { "type": "integer" },
+          "t": { "type": "string" },
+          "evidence": { "type": "string" },
+          "marked_on_screen": { "type": "boolean" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+        },
+        "required": ["n", "score_spoken", "score_min", "score_max", "t", "evidence", "marked_on_screen", "confidence"]
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "required": ["items", "notes"]
+}

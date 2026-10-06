@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t_start": { "type": "string", "description": "MM:SS in full-recording time" },
+          "t_end": { "type": "string", "description": "MM:SS in full-recording time" },
+          "speaker": { "type": "string", "enum": ["moderator", "participant", "observer", "unclear"] },
+          "text_cs": { "type": "string", "description": "Verbatim Czech speech" }
+        },
+        "required": ["t_start", "t_end", "speaker", "text_cs"]
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "required": ["segments", "notes"]
+}

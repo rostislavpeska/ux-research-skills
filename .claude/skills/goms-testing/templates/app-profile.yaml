@@ -1,0 +1,44 @@
+# goms-testing — app profile. One per app under test; copy next to model.yaml.
+# Everything here is an INPUT collected in step 1 of the workflow.
+schema: goms-profile/1
+app: "<App name>"
+
+base_url: "https://app.example.com/"   # origin measure_r.py may never leave
+entry:
+  mode: guest                  # guest | demo | none — NEVER a real account, NEVER log in
+  url: "/"                     # guest / demo entry point, relative to base_url
+  notes: ""                    # how the demo is reached (button label verbatim)
+
+viewport: 1440x900             # fixed for the walkthrough, the models and measure_r.py
+browser: clean profile         # fresh profile / incognito context; never the user's own session
+
+participant_language: cs       # moderator questions + observer sheet (--lang)
+report_language: en
+
+# Anything that changes state. Matched case-insensitively, whole word, against
+# step labels / targets / replay selectors / text / urls. Prefix "re:" for a
+# regex. Built-in EN + CS verbs (save, submit, send, import, star, add, create,
+# log in, uložit, odeslat, přidat, …) are always on in measure_r.py.
+forbidden_actions:
+  - "Run and save"
+  - "re:\\bstar(red)?\\b"
+  # - "<app-specific verb or button label>"
+
+ai_assistant:
+  present: false               # does the app have an in-app AI chat / assistant?
+  messages_approved: false     # true ONLY on explicit operator approval for this session (read by measure_r.py)
+
+docs:                          # product docs for behaviour that must not be executed → status: documented
+  - "<url or path>"
+
+prior_model: null              # path; read ONLY after our models are final (workflow step 7)
+
+output:
+  dir: "<folder the operator named>"   # write exactly ONE new report file here; modify nothing else
+  report: "goms-report-<app>-<yyyy-mm-dd>.md"
+  format: md                   # md (default) | html
+  model: "<scratch dir>/model.yaml"   # working copy — NEVER in the user's folder; the report embeds it
+
+design_tokens:                 # optional — for the Fitts flag in references/goms-debt.md
+  repo: null                   # path to a token repo; detect, don't hardcode
+  min_target: null             # filled by detection: token name + value, or null

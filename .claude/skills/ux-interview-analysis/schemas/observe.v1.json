@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t": { "type": "string", "description": "MM:SS full-recording time" },
+          "t_end": { "type": "string", "description": "MM:SS full-recording time" },
+          "screen": { "type": "string" },
+          "action": { "type": "string", "enum": ["click", "double_click", "type", "scroll", "drag", "hover", "select_file", "wait", "read", "none"] },
+          "target": { "type": "string" },
+          "cursor_x": { "type": "integer", "minimum": -1, "maximum": 1000 },
+          "cursor_y": { "type": "integer", "minimum": -1, "maximum": 1000 },
+          "system_response": { "type": "string" },
+          "difficulty_signal": { "type": "string", "enum": ["none", "hesitation", "searching", "backtrack", "repeated", "wrong_target", "error_message", "waiting"] },
+          "visible_evidence": { "type": "string" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+        },
+        "required": ["t", "t_end", "screen", "action", "target", "cursor_x", "cursor_y", "system_response", "difficulty_signal", "visible_evidence", "confidence"]
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "required": ["steps", "notes"]
+}

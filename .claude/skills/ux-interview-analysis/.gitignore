@@ -1,0 +1,8 @@
+# Participant data never enters this (public) repo.
+*.mp4
+*.m4a
+out/
+exports/
+eval/moments*
+__pycache__/
+.pytest_cache/

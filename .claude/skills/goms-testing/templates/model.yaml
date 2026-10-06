@@ -1,0 +1,64 @@
+# goms-testing — model template. Copy, then fill from the clean-profile walkthrough.
+#
+# tasks → methods → steps. klm.py / cogulator_export.py / sheet.py all read this.
+#
+# Step fields
+#   label      action phrase as the observer will read it (UI copy verbatim in quotes)
+#   target     optional noun phrase for Cogulator lines (defaults to label)
+#   ops_low    operators counted in nominal + low      tokens: M P B BB… H K nK S R
+#   ops_extra  operators added ONLY in the high variant (extra M per Rule 2, first-time tab, …)
+#   status     verified      – observed live in the clean profile
+#              not_executed  – state-changing, modelled but never clicked  → [NOT EXECUTED]
+#              not_verified  – modelled, not observed                        → [NOT VERIFIED]
+#              documented    – taken from product docs, not executed
+#   chunks     working-memory items held across steps (Cogulator <chunk>)
+#   note       M-rule applied, judgement calls, assumptions (free-text length!)
+#   replay     optional — ONLY for verified read-only steps, see scripts/measure_r.py
+#
+# Method fields
+#   selection_rule   when a user would pick this method (a hypothesis until observed)
+#   free_text_chars  declared free-text length (K in runs ≥ 20); klm.py warns on mismatch
+#   default          optional true — the method CreateState selects in Cogulator
+#
+# Task fields
+#   triage   routine (⚙ modelled) | discovery (👁 test only, no methods) | qa_only | skip
+schema: goms-model/1
+app: "<App name>"
+profile: app-profile.yaml
+viewport: 1440x900
+walked: null           # ISO date of the walkthrough
+prior_model: null      # read ONLY after these models are final
+
+tasks:
+  - id: T1
+    title: "<goal in the participant's words>"
+    triage: routine
+    methods:
+      - id: A
+        name: "<method name, e.g. Global search>"
+        selection_rule: "<when a user would choose this method — hypothesis>"
+        free_text_chars: 0
+        steps:
+          - label: "Click the search field"
+            target: "search field"
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [query]
+            note: "Rule 0: P selects a command → M."
+          - label: "Type the query (6 chars)"
+            ops_low: H 6K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Typed argument → no M. 6 chars = assumption."
+          - label: "Pick the result"
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "No M for visual search (expert assumption) → density debt."
+
+  - id: T2
+    title: "<comprehension task — observed only>"
+    triage: discovery

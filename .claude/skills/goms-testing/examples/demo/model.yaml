@@ -1,0 +1,267 @@
+# Demo app (fictional) — KLM regression fixture for the goms-testing skill.
+#
+# The OPERATOR STRINGS are the operator's regression spec (2026-09-30) and
+# must keep reproducing: M1.2 G 15.1 s · M6.1 D1 6.6 s · D2 15.5 s ·
+# M6.2 form 19.4 s (range 15–28 s) · chat 13.8 s · D2/D1 2.33 · form/chat 1.41.
+#
+# The step LABELS are generic placeholders derived from the operator pattern.
+# The app is fictional, so every step is not_verified (or
+# not_executed where it would change state). It exists to pin the KLM
+# arithmetic — copy templates/model.yaml for a real app.
+schema: goms-model/1
+app: Demo app (fictional)
+profile: null
+viewport: 1440x900
+walked: null            # ISO date of the clean-profile walkthrough; null = not walked
+prior_model: null       # read ONLY after these models are final
+
+tasks:
+  - id: M1.2
+    title: Reach a company via global search (regression)
+    triage: routine
+    methods:
+      - id: G
+        name: Global search
+        selection_rule: "Single method modelled; alternative routes (browse lists) not in the regression spec."
+        free_text_chars: 0
+        steps:
+          - label: Click the global search field
+            target: global search field
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [query]
+            note: "Rule 0: command point → M. Placeholder label."
+          - label: Type the query (6 chars)
+            target: query
+            ops_low: H 6K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Typed argument → no M per keystroke. 6 chars is an explicit assumption; test name, ticker AND full legal name."
+          - label: Pick the matching result from the list
+            target: search result
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "No M for visual search of the result list (expert assumption) → density debt."
+          - label: Triple-click to select the field's current value
+            target: value field
+            ops_low: M P BBBBBB
+            ops_extra: ""
+            status: not_verified
+            chunks: [value]
+            note: "BBBBBB = triple-click (3 × BB)."
+          - label: Type the new value (3 chars)
+            target: value
+            ops_low: H 3K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "3 chars is an explicit assumption."
+          - label: Click the confirming command
+            target: confirming command
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "If this command changes state it becomes not_executed on the real walk."
+
+  - id: M6.1
+    title: Put two files onto the empty upload tile (regression)
+    triage: routine
+    methods:
+      - id: D1
+        name: Both files at once onto the empty tile
+        selection_rule: "Hypothesis: users who know multi-select (Ctrl-click) drag both at once; everyone else goes one-by-one (D2). Verify in the session."
+        free_text_chars: 0
+        steps:
+          - label: Click file A in the file browser
+            target: file A
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [file A]
+            note: ""
+          - label: Ctrl-click file B
+            target: file B
+            ops_low: K P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [file B]
+            note: "A Ctrl modifier = 1 K. No M: anticipated by the multi-select plan (Rule 1)."
+          - label: Drag both files onto the empty tile
+            target: empty upload tile
+            ops_low: P B P B
+            ops_extra: M
+            status: not_executed
+            chunks: []
+            note: "Drag = P B P B. High variant adds an M to verify the drop target. Dropping uploads → NOT EXECUTED."
+      - id: D2
+        name: One file at a time
+        selection_rule: "Default for users who do not multi-select."
+        free_text_chars: 0
+        steps:
+          - label: Drag file A onto the empty tile
+            target: file A to tile
+            ops_low: M P B P B
+            ops_extra: ""
+            status: not_executed
+            chunks: [file A]
+            note: "Upload = state change → NOT EXECUTED."
+          - label: First follow-up command for file A
+            target: follow-up command 1
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Placeholder: the regression spec gives the operators, not the UI label."
+          - label: Second follow-up command for file A
+            target: follow-up command 2
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Placeholder label."
+          - label: Drag file B onto the tile
+            target: file B to tile
+            ops_low: M P B P B
+            ops_extra: ""
+            status: not_executed
+            chunks: [file B]
+            note: "Upload = state change → NOT EXECUTED."
+          - label: Follow-up command for file B
+            target: follow-up command
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Placeholder label."
+
+  - id: M6.2
+    title: Set up the same item via the form or via the in-app chat (regression)
+    triage: routine
+    methods:
+      - id: form
+        name: Form dialog
+        selection_rule: "Hypothesis: form when the user needs exact values; chat when the goal is easier to say than to click. Verify in the session."
+        free_text_chars: 0
+        steps:
+          - label: Open the dialog
+            target: dialog opener
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [goal values]
+            note: ""
+          - label: Switch to the Data tab (only if the dialog opens on another tab)
+            target: Data tab
+            ops_low: ""
+            ops_extra: M P BB
+            status: not_verified
+            chunks: []
+            note: "Extra only: record whether the dialog opens on the first or the last-used tab."
+          - label: Scroll to the fields
+            target: dialog body
+            ops_low: S
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "S is an assumption (nominal 1.0 s). Record the distance below the fold."
+          - label: Click into the text field
+            target: text field
+            ops_low: P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Clicking into a field = argument → no M (Rule 0)."
+          - label: Type the value (11 chars)
+            target: value
+            ops_low: H 11K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "11 chars is an explicit assumption."
+          - label: Pick the option
+            target: option
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: ""
+          - label: Click into the second field
+            target: second field
+            ops_low: P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Argument → no M."
+          - label: Type the second value (2 chars)
+            target: second value
+            ops_low: H 2K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: ""
+          - label: Apply the command
+            target: apply command
+            ops_low: H M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Check whether apply is staged (nothing persists until Save)."
+          - label: Save
+            target: Save button
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "State change → modelled, NOT EXECUTED."
+      - id: chat
+        name: In-app AI chat
+        selection_rule: "Hypothesis: chosen by users who prefer describing the goal; requires trust in the answer (relevance NOT assessed — no message sent)."
+        free_text_chars: 28
+        steps:
+          - label: Open the chat
+            target: chat opener
+            ops_low: M P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: [goal values]
+            note: ""
+          - label: Click into the prompt box
+            target: prompt box
+            ops_low: P BB
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "Argument → no M."
+          - label: Type the request (28 chars, free text)
+            target: request
+            ops_low: H 28K
+            ops_extra: ""
+            status: not_verified
+            chunks: []
+            note: "28 chars is an explicit free-text assumption (≥ 20 K → reported without free text too)."
+          - label: Send with Enter
+            target: Enter
+            ops_low: M K
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "Rule 4: Enter terminating a variable string keeps its M. Sending to the assistant = not approved → NOT EXECUTED."
+          - label: Wait for the answer
+            target: assistant answer
+            ops_low: R
+            ops_extra: ""
+            status: not_executed
+            chunks: []
+            note: "R (LLM time) is always excluded; measure it separately and subtract from observed."
+          - label: Apply the chat's result
+            target: apply result
+            ops_low: ""
+            ops_extra: H M P BB
+            status: not_executed
+            chunks: []
+            note: "Extra only (high variant)."

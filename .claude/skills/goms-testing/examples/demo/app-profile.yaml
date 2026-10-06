@@ -1,0 +1,40 @@
+# Demo site (fictional) — app-profile SKELETON. No flows are modelled here on purpose:
+# every task, label and target must come from a clean-profile walkthrough.
+schema: goms-profile/1
+app: Demo site (fictional)
+
+base_url: "https://example.com/"
+entry:
+  mode: guest                  # TODO: confirm the public/guest entry; never log in
+  url: "/"                     # TODO: entry path for the tasks under test
+  notes: ""                    # TODO
+
+viewport: 1440x900
+browser: clean profile
+
+participant_language: cs       # TODO: confirm with the operator
+report_language: en            # TODO: confirm
+
+forbidden_actions:             # TODO: add site-specific state changes (newsletter, registration, comments, …)
+  - "re:\\bodeb[íi]rat\\b"     # generic CS "subscribe" verb — confirm live labels
+  - "re:k\\s+odběru"           # generic CS newsletter sign-up phrase — confirm live labels
+
+ai_assistant:
+  present: null                # TODO: check the live site
+  messages_approved: false
+
+docs: []                       # TODO: product docs for behaviour that must not be executed
+
+prior_model: null              # TODO: path to any prior GOMS model (read only after ours are final)
+
+output:
+  dir: null                    # TODO: the folder the operator names
+  report: "goms-report-demo-<yyyy-mm-dd>.md"
+  format: md
+  model: "<scratch dir>/model.yaml"   # never in the user's folder
+
+design_tokens:
+  repo: null                   # TODO: path to the DS token repo if the Fitts flag should use it
+  min_target: null             # TODO: fill by detection (references/goms-debt.md)
+
+# TODO tasks: collect from the operator in step 1 — do NOT invent flows.

@@ -1,0 +1,26 @@
+name: Validate skills
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/validate_skills.py
+      - run: python -B .claude/skills/skill-library-audit/scripts/audit_library.py --skills-root .claude/skills
+      - run: python scripts/setup_repo_skill_links.py
+      - run: python scripts/setup_repo_skill_links.py --check
+      - run: python -B -m unittest discover -s scripts -p test_agent_setup.py
+      - run: python -B -m unittest discover -s .claude/skills/skill-library-audit/tests
+      - run: python -m pytest .claude/skills/goms-testing/tests -q
+      - run: python -m py_compile .claude/skills/ux-interview-analysis/scripts/board_draft.py .claude/skills/ux-interview-analysis/scripts/board_hashcheck.py .claude/skills/ux-interview-analysis/scripts/build_request.py .claude/skills/ux-interview-analysis/scripts/coverage.py .claude/skills/ux-interview-analysis/scripts/doc_language.py .claude/skills/ux-interview-analysis/scripts/excerpt.py .claude/skills/ux-interview-analysis/scripts/figjam_code.py .claude/skills/ux-interview-analysis/scripts/frames.py .claude/skills/ux-interview-analysis/scripts/obs_print.py .claude/skills/ux-interview-analysis/scripts/render_quotes.py .claude/skills/ux-interview-analysis/scripts/segments.py .claude/skills/ux-interview-analysis/n8n/sanitize.py

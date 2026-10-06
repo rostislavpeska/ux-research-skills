@@ -1,0 +1,39 @@
+# Czech. Every fixed text in deliverables comes from here; scripts never hardcode a language.
+# A new language = a copy of this file with the same keys (see locales/README.md).
+code: cs
+name: Czech
+name_native: čeština
+
+quotes: ["„", "“"]
+
+roles:
+  moderator: Moderátor
+  participant: Respondent
+  observer: Pozorovatel
+  unclear: Nejasné
+
+# Filled into prompts/transcript.v2.md (model-facing; the transcript itself stays verbatim).
+prompt:
+  language_name: Czech
+  filler_examples: "ehm, hm, ee, no, jako, prostě, vlastně, tak, takže"
+  false_start_examples: '"na- na tom", "to je- to bude"'
+  marker_laughter: "[smích]"
+  marker_pause: "[pauza]"
+  marker_inaudible: "[nesrozumitelné]"
+  marker_overlap: "[současně]"
+
+transcript:
+  title: "Přepis rozhovoru – {id} (verbatim)"
+  heading: "Přepis rozhovoru – {id}"
+  intro:
+    - "Doslovný přepis (verbatim). Strojově vytvořený, zatím neověřený člověkem."
+    - "Časy = minuty:sekundy od začátku nahrávky."
+    - "Mluvčí: Moderátor, Respondent, Pozorovatel (Nejasné = mluvčího nelze určit)."
+    - "Značky: [nesrozumitelné], [smích], [pauza], [současně] = překryv řeči; slovo- = nedokončené slovo; … = nedořečeno."
+  duration: " Délka nahrávky {duration}."
+  audio_notes: "Poznámky k audiu"
+  table_header: ["Čas", "Mluvčí", "Text"]
+  source: "Zdroj: model {model} ({model_version}), prompt {prompt}, běhy {runs}."
+
+summary:
+  title: "Shrnutí sezení – {id}"

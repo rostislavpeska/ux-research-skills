@@ -1,0 +1,6 @@
+pyyaml>=6
+pillow>=10
+python-docx>=1.1
+pytest>=8
+# optional: GOMS measure_r.py
+# playwright>=1.40
