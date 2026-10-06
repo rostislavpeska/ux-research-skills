@@ -12,6 +12,7 @@
     "locales/README.md",
     "locales/cs.yaml",
     "locales/en.yaml",
+    "n8n/INSTALL.md",
     "n8n/README.md",
     "n8n/sanitize.py",
     "n8n/workflows/fetch-recording.json",

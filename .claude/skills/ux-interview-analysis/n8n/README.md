@@ -15,24 +15,16 @@ API key removed — nodes, connections and code otherwise unchanged.
 
 ## Setup
 
-1. **NocoDB** — create a base with the three tables below. Copy the workspace, base and table ids.
-2. **Import** each template (n8n editor → Import from file). Select your credentials on every node
-   that shows a warning.
-3. **Placeholders** — search each workflow for `REPLACE_`:
-   - `REPLACE_WITH_YOUR_API_KEY` in every "Check API Key" node → a long random string (the same in
-     all five). Better: switch the Webhook nodes to n8n's built-in **Header Auth** and delete the IF
-     node — we kept the IF pattern because our other workflows use it.
-   - `REPLACE_NOCODB_WORKSPACE_ID`, `REPLACE_NOCODB_BASE_ID`, `REPLACE_TABLE_ID_<table>` in NocoDB
-     nodes and in the table map of the Rows workflow.
-4. **Async calls:** Ingest and Gemini Call answer at once with `{"job_id": <n8n execution id>}` and
-   keep working; read the result from that execution (its last node) or from the `ux_*` row it writes.
-   Rows, Publish Doc and Fetch Recording answer synchronously.
-5. **Activate** all five. In n8n versions with draft/publish, re-activate after every edit — an
-   edited but unpublished workflow keeps serving the old version (or 404).
-6. **Binary data**: recordings are large (a 45-min Meet recording is a few hundred MB). Run n8n with
-   `N8N_DEFAULT_BINARY_DATA_MODE=filesystem`, or downloads will exhaust memory.
-7. **Drive access**: the Google account behind your Drive credential must be **Editor** on the study
-   folder, and Meet recordings need "Viewers and commenters can download" enabled.
+Step by step from zero — Docker, NocoDB tables, credentials, placeholders, import, smoke test,
+troubleshooting: **[INSTALL.md](INSTALL.md)**.
+
+Two things to know before you read it:
+- **Async calls:** Ingest and Gemini Call answer at once with `{"job_id": <n8n execution id>}` and
+  keep working; read the result from that execution (its last node) or from the `ux_*` row it
+  writes. Rows, Publish Doc and Fetch Recording answer synchronously.
+- **Auth:** every webhook checks one static key in an `x-api-key` header (IF node, our house
+  pattern). n8n's built-in **Header Auth** on the Webhook node is the cleaner choice — swap it in if
+  you prefer and delete the IF node.
 
 ## NocoDB tables
 

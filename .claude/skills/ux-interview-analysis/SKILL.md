@@ -42,8 +42,8 @@ in the interview's own Drive folder.
 
 ## Plumbing (n8n, all guarded by an `x-api-key` header)
 
-Import the five workflows from `n8n/workflows/` and follow `n8n/README.md`
-(credentials, API key, NocoDB tables). Never store the key in files of this skill; read it from
+Import the five workflows from `n8n/workflows/` following `n8n/INSTALL.md`
+(Docker, NocoDB tables, credentials, API key, smoke test). Never store the key in files of this skill; read it from
 your n8n at run time (for example through an n8n MCP server: the "Check API Key" node).
 
 | Webhook | Workflow | Does |

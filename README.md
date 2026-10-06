@@ -121,7 +121,7 @@ video frame. The demo's mock screens and the two charts were made by hand for th
 | `.claude/skills/ux-interview-analysis/` | analysis skill: `SKILL.md`, prompts, schemas, locales (`cs`, `en`), templates, scripts |
 | `…/ux-interview-analysis/templates/` | study brief, session script, observer-notes guides |
 | `…/ux-interview-analysis/examples/railo/` | inputs of the fictional demo boards above |
-| `…/ux-interview-analysis/n8n/` | the five workflow templates (`workflows/`), setup + NocoDB tables (`README.md`), `sanitize.py` |
+| `…/ux-interview-analysis/n8n/` | the five workflow templates (`workflows/`), install guide (`INSTALL.md`), NocoDB tables + limits (`README.md`), `sanitize.py` |
 | `…/ux-interview-analysis/renderers/figjam/` | draws the board JSON in FigJam through the Figma MCP |
 | `.claude/skills/skill-library-audit/` | companion: checks every package's declared resources (`resources.json`) |
 | `scripts/` | discovery-link setup, user-level installer, validator |
@@ -154,7 +154,7 @@ python -m pytest .claude/skills/goms-testing/tests -q
 - An agent that runs skills, reads images (frame verification is not optional) and calls MCP
   servers — built with Claude Code.
 - Python 3.10+, `pip install -r requirements.txt`; `ffmpeg` on PATH (frames).
-- For the analysis: self-hosted **n8n**, **NocoDB**, a **Google Drive** OAuth credential, a
+- For the analysis (install guide: [n8n/INSTALL.md](.claude/skills/ux-interview-analysis/n8n/INSTALL.md)): self-hosted **n8n**, **NocoDB**, a **Google Drive** OAuth credential, a
   **Gemini API** key (paid usage), and for the board the **Figma MCP** with an editable FigJam file.
 - Optional: Playwright (GOMS `measure_r.py`), Obsidian + the free Time Bullet plugin (observer notes).
 
